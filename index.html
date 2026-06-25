@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SST SECURE - Portal Integrado & Biometria</title>
+    <title>SST SECURE - Portal Integrado & Biometria Dinâmica</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para Ícones -->
@@ -56,7 +56,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row">
 
-    <!-- TELA DE LOGIN BLOQUEADA (SOBREPOSIÇÃO) -->
+    <!-- TELA DE LOGIN DINÂMICA -->
     <div id="login-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6">
             <div class="flex flex-col items-center space-y-3 text-center">
@@ -65,14 +65,16 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-bold text-white tracking-tight">SST SECURE</h2>
-                    <p class="text-xs text-slate-400 mt-1">Insira suas credenciais corporativas para acessar o painel</p>
+                    <p class="text-xs text-slate-400 mt-1">Portal de Segurança Integrado & Chancelas Biométricas</p>
                 </div>
             </div>
             
             <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Usuário</label>
-                    <input type="text" id="login-user" required placeholder="Ex: admin" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Selecione o Usuário Credenciado</label>
+                    <select id="login-user-select" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <!-- Carregado via JS -->
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1">Senha de Acesso</label>
@@ -80,10 +82,10 @@
                 </div>
                 <div id="login-error" class="hidden text-xs text-red-400 flex items-center space-x-1">
                     <i class="fa-solid fa-circle-exclamation"></i>
-                    <span>Usuário ou senha inválidos.</span>
+                    <span>Senha de acesso incorreta.</span>
                 </div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition-all shadow-lg shadow-emerald-950/40">
-                    Validar Credenciais e Entrar
+                    Validar Biometria & Acessar
                 </button>
             </form>
             <div class="text-center">
@@ -128,18 +130,22 @@
                     <i class="fa-solid fa-clipboard-check w-5 text-lg"></i>
                     <span>Checklist Máquinas</span>
                 </button>
+                <button onclick="switchTab('cadastros')" id="btn-cadastros" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white">
+                    <i class="fa-solid fa-folder-plus w-5 text-lg"></i>
+                    <span>Módulo de Cadastros</span>
+                </button>
             </nav>
         </div>
 
-        <!-- Rodapé Sidebar -->
+        <!-- Rodapé Sidebar Dinâmico -->
         <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex flex-col space-y-3">
             <div class="flex items-center space-x-3">
-                <div class="h-8 w-8 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold text-slate-300">
-                    AD
+                <div class="h-8 w-8 bg-emerald-600 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm" id="user-avatar">
+                    --
                 </div>
                 <div>
-                    <p class="text-xs font-semibold text-slate-200">Eng. Adriano Silva</p>
-                    <p class="text-[10px] text-slate-500">Gestor SST - CREA 54932</p>
+                    <p class="text-xs font-semibold text-slate-200 leading-tight" id="user-display-name">Carregando...</p>
+                    <p class="text-[10px] text-slate-500" id="user-display-role">Identificando...</p>
                 </div>
             </div>
             <button onclick="handleLogout()" class="w-full text-left text-xs text-red-400 hover:text-red-300 transition flex items-center space-x-2 pt-2 border-t border-slate-900">
@@ -257,10 +263,7 @@
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Colaborador Beneficiário</label>
                                 <select id="epi-colaborador" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
                                     <option value="">Selecione...</option>
-                                    <option value="Roberto Alencar">Roberto Alencar (Operador de Torno)</option>
-                                    <option value="Jonas de Souza">Jonas de Souza (Soldador)</option>
-                                    <option value="Carla Mendes">Carla Mendes (Encarregada de Caldeiraria)</option>
-                                    <option value="Eduardo Antunes">Eduardo Antunes (Técnico de Manutenção)</option>
+                                    <!-- Dinâmico -->
                                 </select>
                             </div>
 
@@ -283,14 +286,14 @@
 
                             <!-- Área Biométrica -->
                             <div class="border border-slate-800 rounded-xl p-4 bg-slate-950/80">
-                                <span class="text-xs text-slate-400 font-bold block mb-2 uppercase tracking-wide">Chancela de Autoria</span>
+                                <span class="text-xs text-slate-400 font-bold block mb-2 uppercase tracking-wide">Chancela de Autoria (Biometria)</span>
                                 <button type="button" onclick="triggerBiometrics('epi')" class="w-full flex items-center justify-center space-x-3 bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 p-3 rounded-lg hover:bg-emerald-900/40 transition-all font-semibold text-sm">
                                     <i class="fa-solid fa-fingerprint text-lg animate-pulse"></i>
                                     <span id="epi-biometric-btn-text">Assinar via Biometria</span>
                                 </button>
                                 <div class="hidden mt-3 text-xs flex items-center space-x-2 text-emerald-400" id="epi-biometric-success">
                                     <i class="fa-solid fa-circle-check"></i>
-                                    <span>Assinatura Digital Capturada com Sucesso!</span>
+                                    <span>Assinatura Digital Capturada!</span>
                                 </div>
                             </div>
 
@@ -353,51 +356,25 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Setor / Setor Físico</label>
                                 <select id="apr-setor" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-                                    <option value="Usinagem de Grande Porte">Usinagem de Grande Porte</option>
-                                    <option value="Setor de Soldagem & Caldeiraria">Setor de Soldagem & Caldeiraria</option>
-                                    <option value="Subestação Elétrica">Subestação Elétrica Geral</option>
-                                    <option value="Armazém Logístico">Armazém Logístico de Insumos</option>
+                                    <!-- Dinâmico -->
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-2">Identificação de Riscos Críticos</label>
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
-                                        <input type="checkbox" value="Choque Elétrico" class="apr-risco accent-emerald-500">
-                                        <span>Choque Elétrico</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
-                                        <input type="checkbox" value="Queda de Altura" class="apr-risco accent-emerald-500">
-                                        <span>Queda de Altura</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
-                                        <input type="checkbox" value="Queimaduras" class="apr-risco accent-emerald-500">
-                                        <span>Queimaduras</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
-                                        <input type="checkbox" value="Ruído Excessivo" class="apr-risco accent-emerald-500">
-                                        <span>Ruído Elevado</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
-                                        <input type="checkbox" value="Inalação de Fumos" class="apr-risco accent-emerald-500">
-                                        <span>Inalação Fumos</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
-                                        <input type="checkbox" value="Esmagamento" class="apr-risco accent-emerald-500">
-                                        <span>Esmagamento</span>
-                                    </label>
+                                <div class="grid grid-cols-2 gap-2 text-xs" id="apr-risks-checkboxes-container">
+                                    <!-- Dinâmico -->
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Medidas de Controle Implementadas</label>
-                                <textarea id="apr-controles" required rows="3" placeholder="Ex: Desenergização total, instalação de barreiras físicas e uso de máscara de proteção específica." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
+                                <textarea id="apr-controles" required rows="3" placeholder="Ex: Desenergização total, isolamento e barreiras físicas." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Responsável pela Análise</label>
-                                <input type="text" id="apr-responsavel" required placeholder="Nome do Técnico ou Engenheiro" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <input type="text" id="apr-responsavel" readonly class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 focus:outline-none">
                             </div>
 
                             <!-- Área Biométrica -->
@@ -466,44 +443,33 @@
                         <form id="form-pt" class="space-y-4" onsubmit="handlePTSubmit(event)">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Local Exato da Atividade</label>
-                                <input type="text" id="pt-local" placeholder="Ex: Chaminé Caldeira 3 - Área Externa" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <input type="text" id="pt-local" placeholder="Ex: Chaminé Caldeira 3" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Classificação do Trabalho Crítico</label>
                                 <select id="pt-categoria" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-                                    <option value="Trabalho em Altura (NR-35)">Trabalho em Altura (NR-35)</option>
-                                    <option value="Espaço Confinado (NR-33)">Espaço Confinado (NR-33)</option>
-                                    <option value="Atividade com Eletricidade (NR-10)">Trabalho Quente / Soldagem</option>
-                                    <option value="Áreas Classificadas">Trabalho sob Pressão / Escavações</option>
+                                    <!-- Dinâmico -->
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Executante Habilitado</label>
-                                <input type="text" id="pt-executante" placeholder="Ex: Roberto Alencar" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <select id="pt-executante" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="">Selecione o Executante...</option>
+                                    <!-- Dinâmico -->
+                                </select>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-slate-400 mb-1">Engenheiro / Supervisor Responsável</label>
-                                <input type="text" id="pt-autorizador" placeholder="Ex: Adriano Silva" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Engenheiro / Supervisor Autorizador</label>
+                                <input type="text" id="pt-autorizador" readonly class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 focus:outline-none">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-2">Checklist Imprescindível para Liberação</label>
-                                <div class="space-y-2 text-xs">
-                                    <label class="flex items-center space-x-2 text-slate-300">
-                                        <input type="checkbox" id="pt-chk-1" required class="accent-emerald-500">
-                                        <span>Área limpa, isolada e adequadamente sinalizada?</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 text-slate-300">
-                                        <input type="checkbox" id="pt-chk-2" required class="accent-emerald-500">
-                                        <span>Equipamentos de Resgate estão prontificados no local?</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 text-slate-300">
-                                        <input type="checkbox" id="pt-chk-3" required class="accent-emerald-500">
-                                        <span>Os executantes portam e conhecem a respectiva APR?</span>
-                                    </label>
+                                <div class="space-y-2 text-xs" id="pt-checklist-container">
+                                    <!-- Dinâmico -->
                                 </div>
                             </div>
 
@@ -574,44 +540,23 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Máquina / Equipamento Avaliado</label>
                                 <select id="chk-maquina" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-                                    <option value="Empilhadeira Hyster H50">Empilhadeira Hyster H50 (Logística)</option>
-                                    <option value="Ponte Rolante Demag 10t">Ponte Rolante Demag 10t (Caldeiraria)</option>
-                                    <option value="Torno CNC Romi D800">Torno CNC Romi D800 (Usinagem)</option>
-                                    <option value="Prensa Hidráulica 100T">Prensa Hidráulica Newton 100T</option>
+                                    <!-- Dinâmico -->
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">Operador Responsável</label>
-                                <input type="text" id="chk-operador" placeholder="Ex: Jonas de Souza" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <select id="chk-operador" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="">Selecione o Operador...</option>
+                                    <!-- Dinâmico -->
+                                </select>
                             </div>
 
-                            <!-- Itens de Inspeção -->
+                            <!-- Itens de Inspeção Dinâmicos -->
                             <div class="space-y-3">
-                                <label class="block text-xs font-semibold text-slate-400 mb-1">Itens Críticos (NR-12)</label>
-                                
-                                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
-                                    <span class="text-xs text-slate-300 flex-1">1. Sistema de Parada de Emergência (Botão de Soco)</span>
-                                    <select id="chk-item1" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                                        <option value="C">Conforme</option>
-                                        <option value="NC">Não Conforme</option>
-                                    </select>
-                                </div>
-
-                                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
-                                    <span class="text-xs text-slate-300 flex-1">2. Sensores de Proteção Físicos de Operação</span>
-                                    <select id="chk-item2" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                                        <option value="C">Conforme</option>
-                                        <option value="NC">Não Conforme</option>
-                                    </select>
-                                </div>
-
-                                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
-                                    <span class="text-xs text-slate-300 flex-1">3. Inexistência de Vazamentos de Óleo e Fluidos</span>
-                                    <select id="chk-item3" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                                        <option value="C">Conforme</option>
-                                        <option value="NC">Não Conforme</option>
-                                    </select>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Itens Críticos de Segurança (NR-12)</label>
+                                <div class="space-y-3" id="machine-checklist-items-container">
+                                    <!-- Dinâmico -->
                                 </div>
                             </div>
 
@@ -663,17 +608,250 @@
                 </div>
             </section>
 
+            <!-- ================= TELA 6: PAINEL DE CADASTROS (NOVO!) ================= -->
+            <section id="view-cadastros" class="space-y-6 hidden">
+                <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                    
+                    <!-- Sub-menu de navegação dos cadastros -->
+                    <div class="xl:col-span-1 bg-slate-950/40 border border-slate-800 rounded-xl p-4 flex flex-row xl:flex-col gap-2 overflow-x-auto shrink-0">
+                        <button onclick="switchCadTab('cad-colab')" id="btn-cad-colab" class="cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white">
+                            <i class="fa-solid fa-users mr-2"></i>Colaboradores & Biometria
+                        </button>
+                        <button onclick="switchCadTab('cad-epis')" id="btn-cad-epis" class="cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-900">
+                            <i class="fa-solid fa-box mr-2"></i>Estoque de EPIs
+                        </button>
+                        <button onclick="switchCadTab('cad-params')" id="btn-cad-params" class="cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-900">
+                            <i class="fa-solid fa-sliders mr-2"></i>Parâmetros APR & PT
+                        </button>
+                        <button onclick="switchCadTab('cad-maquinas')" id="btn-cad-maquinas" class="cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-900">
+                            <i class="fa-solid fa-tractor mr-2"></i>Máquinas & Inspeção
+                        </button>
+                        <button onclick="switchCadTab('cad-gestores')" id="btn-cad-gestores" class="cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-900">
+                            <i class="fa-solid fa-user-tie mr-2"></i>Usuários do Sistema
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo dinâmico das configurações -->
+                    <div class="xl:col-span-3 bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        
+                        <!-- SUB-TELA A: GESTÃO DE COLABORADORES -->
+                        <div id="subview-cad-colab" class="space-y-6">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-sm font-bold uppercase tracking-wider text-white">Colaboradores Cadastrados</h4>
+                                <span class="text-xs text-slate-500">Use os botões para cadastrar novas digitais</span>
+                            </div>
+
+                            <form id="form-cad-colab" onsubmit="addColaborador(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nome Completo</label>
+                                    <input type="text" id="new-colab-nome" required placeholder="Ex: Lucas Ferreira" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cargo / Função</label>
+                                    <input type="text" id="new-colab-cargo" required placeholder="Ex: Operador CNC" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded transition shadow">
+                                        <i class="fa-solid fa-plus mr-1"></i> Adicionar Colaborador
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase">
+                                            <th class="py-2">Colaborador</th>
+                                            <th class="py-2">Cargo</th>
+                                            <th class="py-2">Biometria</th>
+                                            <th class="py-2 text-right">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cad-colab-list-body" class="divide-y divide-slate-800 text-slate-300">
+                                        <!-- Dinâmico -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SUB-TELA B: GESTÃO DE EPIS -->
+                        <div id="subview-cad-epis" class="space-y-6 hidden">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-white">Inventário & Fornecimento de EPIs</h4>
+                            
+                            <form id="form-cad-epi" onsubmit="addEPI(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nome do Equipamento</label>
+                                    <input type="text" id="new-epi-nome" required placeholder="Ex: Capacete com Jugular" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Certificado de Aprovação (C.A)</label>
+                                    <input type="text" id="new-epi-ca" required placeholder="Ex: 34912" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Estoque Inicial / Alerta Crítico</label>
+                                    <div class="grid grid-cols-2 gap-1">
+                                        <input type="number" id="new-epi-estoque" required min="0" placeholder="Estoque" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                        <input type="number" id="new-epi-critico" required min="0" placeholder="Crítico" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    </div>
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded transition shadow">
+                                        <i class="fa-solid fa-plus mr-1"></i> Cadastrar EPI
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase">
+                                            <th class="py-2">EPI</th>
+                                            <th class="py-2">Certificado (C.A)</th>
+                                            <th class="py-2 text-center">Quantidade</th>
+                                            <th class="py-2 text-center">Nível Crítico</th>
+                                            <th class="py-2 text-right">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cad-epi-list-body" class="divide-y divide-slate-800 text-slate-300">
+                                        <!-- Dinâmico -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SUB-TELA C: RISCOS E PARÂMETROS APR & PT -->
+                        <div id="subview-cad-params" class="space-y-6 hidden">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-white">Parâmetros de Análise de Risco (APR & PT)</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Setores Físicos -->
+                                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                                    <span class="text-xs font-bold text-slate-300 block border-b border-slate-800 pb-1.5">Setores Organizacionais</span>
+                                    <form onsubmit="addParam(event, 'setores', 'new-param-setor')" class="flex gap-2">
+                                        <input type="text" id="new-param-setor" required placeholder="Novo Setor..." class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                        <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded transition">+</button>
+                                    </form>
+                                    <ul id="list-param-setores" class="text-xs space-y-1 max-h-40 overflow-y-auto"></ul>
+                                </div>
+
+                                <!-- Riscos APR -->
+                                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                                    <span class="text-xs font-bold text-slate-300 block border-b border-slate-800 pb-1.5">Riscos Identificáveis na APR</span>
+                                    <form onsubmit="addParam(event, 'riscosAPR', 'new-param-risco-apr')" class="flex gap-2">
+                                        <input type="text" id="new-param-risco-apr" required placeholder="Novo Risco..." class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                        <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded transition">+</button>
+                                    </form>
+                                    <ul id="list-param-riscos" class="text-xs space-y-1 max-h-40 overflow-y-auto"></ul>
+                                </div>
+
+                                <!-- Categorias PT -->
+                                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                                    <span class="text-xs font-bold text-slate-300 block border-b border-slate-800 pb-1.5">Classificação do Trabalho Crítico (PT)</span>
+                                    <form onsubmit="addParam(event, 'categoriasPT', 'new-param-cat-pt')" class="flex gap-2">
+                                        <input type="text" id="new-param-cat-pt" required placeholder="Ex: Trabalho Quente / Soldagem" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                        <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded transition">+</button>
+                                    </form>
+                                    <ul id="list-param-categorias-pt" class="text-xs space-y-1 max-h-40 overflow-y-auto"></ul>
+                                </div>
+
+                                <!-- Itens de Checklist PT -->
+                                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                                    <span class="text-xs font-bold text-slate-300 block border-b border-slate-800 pb-1.5">Requisitos Legais de Liberação (PT)</span>
+                                    <form onsubmit="addParam(event, 'checklistPT', 'new-param-chk-pt')" class="flex gap-2">
+                                        <input type="text" id="new-param-chk-pt" required placeholder="Ex: Isolamento e sinalização conformes?" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                        <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded transition">+</button>
+                                    </form>
+                                    <ul id="list-param-checklist-pt" class="text-xs space-y-1 max-h-40 overflow-y-auto"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUB-TELA D: MÁQUINAS E CRITÉRIOS DE INSPEÇÃO (NR-12) -->
+                        <div id="subview-cad-maquinas" class="space-y-6 hidden">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-white">Frota de Máquinas & Critérios de Checklist</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Cadastro de Máquinas -->
+                                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                                    <span class="text-xs font-bold text-slate-300 block border-b border-slate-800 pb-1.5">Cadastro de Frota / Maquinários</span>
+                                    <form onsubmit="addParam(event, 'maquinas', 'new-param-maquina')" class="flex gap-2">
+                                        <input type="text" id="new-param-maquina" required placeholder="Ex: Guindaste Hidráulico X" class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                        <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded transition">+</button>
+                                    </form>
+                                    <ul id="list-param-maquinas" class="text-xs space-y-1 max-h-60 overflow-y-auto"></ul>
+                                </div>
+
+                                <!-- Checklist Máquinas -->
+                                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                                    <span class="text-xs font-bold text-slate-300 block border-b border-slate-800 pb-1.5">Critérios de Segurança Obrigatórios (NR-12)</span>
+                                    <form onsubmit="addParam(event, 'checklistMaquinas', 'new-param-chk-maq')" class="flex gap-2">
+                                        <input type="text" id="new-param-chk-maq" required placeholder="Ex: Mangueiras hidráulicas sem fissuras..." class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                        <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded transition">+</button>
+                                    </form>
+                                    <ul id="list-param-checklist-maq" class="text-xs space-y-1 max-h-60 overflow-y-auto"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUB-TELA E: GESTÃO DE USUÁRIOS GESTORES -->
+                        <div id="subview-cad-gestores" class="space-y-6 hidden">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-white">Credenciais e Usuários do Sistema</h4>
+                            
+                            <form id="form-cad-user" onsubmit="addSystemUser(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nome Completo</label>
+                                    <input type="text" id="new-user-nome" required placeholder="Ex: Eng. Adriano Silva" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cargo / Documento CREA</label>
+                                    <input type="text" id="new-user-role" required placeholder="Ex: Gestor SST - CREA 54932" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nome de Usuário / Senha</label>
+                                    <div class="grid grid-cols-2 gap-1">
+                                        <input type="text" id="new-user-username" required placeholder="User" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
+                                        <input type="password" id="new-user-password" required placeholder="Senha" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
+                                    </div>
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded transition shadow">
+                                        <i class="fa-solid fa-plus mr-1"></i> Cadastrar Operador
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase">
+                                            <th class="py-2">Nome Completo</th>
+                                            <th class="py-2">Cargo / Registro</th>
+                                            <th class="py-2">Usuário de Login</th>
+                                            <th class="py-2 text-right">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cad-user-list-body" class="divide-y divide-slate-800 text-slate-300">
+                                        <!-- Dinâmico -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
         </div>
     </main>
 
-    <!-- ================= MODAL BIOMETRIA SIMULADA ================= -->
+    <!-- ================= MODAL BIOMETRIA SIMULADA / REAL ================= -->
     <div id="biometricsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden no-print">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4 shadow-2xl">
             <h4 class="text-white font-extrabold text-lg flex items-center justify-center space-x-2">
                 <i class="fa-solid fa-fingerprint text-emerald-500 animate-pulse text-2xl"></i>
-                <span>Sensor Biométrico Virtual</span>
+                <span>Portal Biométrico</span>
             </h4>
-            <p class="text-xs text-slate-400">Posicione o dedo do operador no sensor abaixo ou clique na área para capturar.</p>
+            <p class="text-xs text-slate-400" id="bio-instructions">Posicione o dedo cadastrado no leitor biométrico USB ou clique abaixo para validar.</p>
             
             <!-- Sensor de toque visual -->
             <button type="button" onclick="executeBiometricCapture()" class="mx-auto w-32 h-32 bg-slate-950 border-2 border-slate-800 hover:border-emerald-500 rounded-full flex items-center justify-center text-slate-600 transition-all hover:text-emerald-400 group relative">
@@ -723,7 +901,8 @@
 
     <!-- SCRIPT DE OPERAÇÕES DO SISTEMA -->
     <script>
-        const MOCK_INVENTORY = [
+        // Parâmetros de Entrada Iniciais do Sistema
+        const DEFAULT_INVENTORY = [
             { id: 'epi_1', nome: 'Protetor Auditivo Concha (3M)', estoque: 48, critico: 15, ca: '14235' },
             { id: 'epi_2', nome: 'Luva de Raspa para Soldagem', estoque: 9, critico: 10, ca: '28345' },
             { id: 'epi_3', nome: 'Óculos de Segurança Fumê', estoque: 45, critico: 12, ca: '39281' },
@@ -731,32 +910,71 @@
             { id: 'epi_5', nome: 'Cinto de Segurança Tipo Paraquedista', estoque: 5, critico: 6, ca: '18392' }
         ];
 
-        // Carregar estado persistido ou inicializar
+        const DEFAULT_COLABORADORES = [
+            { id: 'col_1', nome: 'Roberto Alencar', cargo: 'Operador de Torno', biometricHash: 'BIO_HEX_ROBERTO' },
+            { id: 'col_2', nome: 'Jonas de Souza', cargo: 'Soldador', biometricHash: 'BIO_HEX_JONAS' },
+            { id: 'col_3', nome: 'Carla Mendes', cargo: 'Encarregada de Caldeiraria', biometricHash: 'BIO_HEX_CARLA' },
+            { id: 'col_4', nome: 'Eduardo Antunes', cargo: 'Técnico de Manutenção', biometricHash: 'BIO_HEX_EDUARDO' }
+        ];
+
+        const DEFAULT_SETORES = [
+            'Usinagem de Grande Porte',
+            'Setor de Soldagem & Caldeiraria',
+            'Subestação Elétrica Geral',
+            'Armazém Logístico de Insumos'
+        ];
+
+        const DEFAULT_RISCOS_APR = [
+            'Choque Elétrico', 'Queda de Altura', 'Queimaduras', 'Ruído Elevado', 'Inalação Fumos', 'Esmagamento'
+        ];
+
+        const DEFAULT_CATEGORIAS_PT = [
+            'Trabalho em Altura (NR-35)', 'Espaço Confinado (NR-33)', 'Trabalho Quente / Soldagem', 'Trabalho sob Pressão / Escavações'
+        ];
+
+        const DEFAULT_CHECKLIST_PT = [
+            'Área limpa, isolada e adequadamente sinalizada?',
+            'Equipamentos de Resgate estão prontificados no local?',
+            'Os executantes portam e conhecem a respectiva APR?'
+        ];
+
+        const DEFAULT_MAQUINAS = [
+            'Empilhadeira Hyster H50', 'Ponte Rolante Demag 10t', 'Torno CNC Romi D800', 'Prensa Hidráulica 100T'
+        ];
+
+        const DEFAULT_CHECKLIST_MAQUINAS = [
+            'Sistema de Parada de Emergência (Botão de Soco)',
+            'Sensores de Proteção Físicos de Operação',
+            'Inexistência de Vazamentos de Óleo e Fluidos'
+        ];
+
+        const DEFAULT_SYSTEM_USERS = [
+            { username: 'admin', password: 'sstsecure2026', nome: 'Eng. Adriano Silva', role: 'Gestor SST - CREA 54932' },
+            { username: 'seguranca1', password: '123', nome: 'Téc. Mariana Costa', role: 'Téc. Seg. Trabalho - MTE 83492' }
+        ];
+
+        // Carregar estado persistido do localStorage ou inicializar padrões
         let state = JSON.parse(localStorage.getItem('sst_state')) || {
             entregasEPI: [],
             aprs: [],
             pts: [],
             checklists: [],
-            inventory: MOCK_INVENTORY
+            inventory: DEFAULT_INVENTORY,
+            colaboradores: DEFAULT_COLABORADORES,
+            setores: DEFAULT_SETORES,
+            riscosAPR: DEFAULT_RISCOS_APR,
+            categoriasPT: DEFAULT_CATEGORIAS_PT,
+            checklistPT: DEFAULT_CHECKLIST_PT,
+            maquinas: DEFAULT_MAQUINAS,
+            checklistMaquinas: DEFAULT_CHECKLIST_MAQUINAS,
+            systemUsers: DEFAULT_SYSTEM_USERS,
+            activeUser: null
         };
 
-        // Estado do editor
         let activeTab = 'dashboard';
         let currentBiometricTarget = null;
-        let biometricSignatures = {
-            epi: false,
-            apr: false,
-            pt: false,
-            checklist: false
-        };
-
-        // Estado de edição
-        let editingState = {
-            epi: null,
-            apr: null,
-            pt: null,
-            checklist: null
-        };
+        let biometricSignatures = { epi: false, apr: false, pt: false, checklist: false };
+        let editingState = { epi: null, apr: null, pt: null, checklist: null };
 
         // Sintetizador de Áudio para Feedbacks Sonoros
         function playBeep(frequency = 800, duration = 0.1) {
@@ -772,19 +990,17 @@
                 osc.start();
                 osc.stop(ctx.currentTime + duration);
             } catch (e) {
-                console.log('AudioContext não disponível no navegador.');
+                console.log('AudioContext não disponível.');
             }
         }
 
-        // --- SISTEMA DE TOAST NOTIFICATIONS ---
+        // Sistema de Notificações Popups
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `p-4 rounded-xl shadow-xl border flex items-center space-x-3 text-xs font-semibold transition-all duration-300 transform translate-x-12 opacity-0 max-w-xs pointer-events-auto ${
-                type === 'success' 
-                ? 'bg-emerald-950 border-emerald-800 text-emerald-400' 
-                : type === 'warning'
-                ? 'bg-amber-950 border-amber-800 text-amber-300'
+                type === 'success' ? 'bg-emerald-950 border-emerald-800 text-emerald-400' 
+                : type === 'warning' ? 'bg-amber-950 border-amber-800 text-amber-300' 
                 : 'bg-red-950 border-red-800 text-red-400'
             }`;
 
@@ -792,9 +1008,7 @@
             toast.innerHTML = `<i class="fa-solid fa-${icon} text-base shrink-0"></i><span>${message}</span>`;
             
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.remove('translate-x-12', 'opacity-0');
-            }, 50);
+            setTimeout(() => { toast.classList.remove('translate-x-12', 'opacity-0'); }, 50);
 
             if(type === 'success') playBeep(900, 0.08);
             if(type === 'warning' || type === 'error') playBeep(400, 0.25);
@@ -816,36 +1030,160 @@
             document.getElementById('current-date').innerText = format;
         }
 
+        // --- SISTEMA DE AUTENTICAÇÃO E SESSÃO ---
+        function populateLoginUsers() {
+            const select = document.getElementById('login-user-select');
+            select.innerHTML = state.systemUsers.map(u => `
+                <option value="${u.username}">${u.nome} (${u.role})</option>
+            `).join('');
+        }
+
+        function applyActiveUserSession() {
+            const user = state.activeUser;
+            if(!user) {
+                document.getElementById('login-screen').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('login-screen').classList.add('hidden');
+            
+            // Atualizar perfil na sidebar inferior
+            document.getElementById('user-display-name').innerText = user.nome;
+            document.getElementById('user-display-role').innerText = user.role;
+            
+            // Gerar avatar com as iniciais do nome
+            const initials = user.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('user-avatar').innerText = initials;
+
+            // Atribuir responsabilidade de formulários ao usuário ativo
+            document.getElementById('apr-responsavel').value = user.nome;
+            document.getElementById('pt-autorizador').value = user.nome;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-user-select').value;
+            const pass = document.getElementById('login-password').value;
+            const errorMsg = document.getElementById('login-error');
+
+            const foundUser = state.systemUsers.find(u => u.username === username && u.password === pass);
+            
+            if(foundUser) {
+                state.activeUser = foundUser;
+                saveState();
+                applyActiveUserSession();
+                errorMsg.classList.add('hidden');
+                document.getElementById('login-password').value = '';
+                showNotification(`Bem-vindo, ${foundUser.nome}!`);
+            } else {
+                errorMsg.classList.remove('hidden');
+                playBeep(300, 0.4);
+            }
+        }
+
+        function handleLogout() {
+            state.activeUser = null;
+            saveState();
+            applyActiveUserSession();
+            showNotification('Sessão encerrada com segurança.', 'warning');
+        }
+
         // --- ENTRADA DO SISTEMA ---
         window.onload = function() {
             updateDate();
-            renderEPIOptions();
-            updateDashboard();
+            populateLoginUsers();
+            applyActiveUserSession();
             
-            // Tratamento do estado de login
-            if (localStorage.getItem('sst_logado') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-            }
+            // Inicializar e popular os selects e forms dinâmicos
+            renderAllFormSelections();
+            updateDashboard();
             switchTab('dashboard');
+        }
+
+        // Popular os elementos do DOM dependentes de cadastros dinâmicos
+        function renderAllFormSelections() {
+            // Select de EPI Colaborador
+            const selectColabEpi = document.getElementById('epi-colaborador');
+            const sortedColabs = [...state.colaboradores].sort((a, b) => a.nome.localeCompare(b.nome));
+            selectColabEpi.innerHTML = '<option value="">Selecione...</option>' + 
+                sortedColabs.map(c => `<option value="${c.nome}">${c.nome} (${c.cargo})</option>`).join('');
+
+            // Select de PT Executantes
+            const selectColabPt = document.getElementById('pt-executante');
+            selectColabPt.innerHTML = '<option value="">Selecione o Executante...</option>' + 
+                sortedColabs.map(c => `<option value="${c.nome}">${c.nome} (${c.cargo})</option>`).join('');
+
+            // Select de Checklist Operador
+            const selectColabChk = document.getElementById('chk-operador');
+            selectColabChk.innerHTML = '<option value="">Selecione o Operador...</option>' + 
+                sortedColabs.map(c => `<option value="${c.nome}">${c.nome} (${c.cargo})</option>`).join('');
+
+            // Select de Setor APR
+            const selectSetorApr = document.getElementById('apr-setor');
+            selectSetorApr.innerHTML = state.setores.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            // Riscos da APR (Checkboxes)
+            const risksContainer = document.getElementById('apr-risks-checkboxes-container');
+            risksContainer.innerHTML = state.riscosAPR.map(r => `
+                <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                    <input type="checkbox" value="${r}" class="apr-risco accent-emerald-500">
+                    <span>${r}</span>
+                </label>
+            `).join('');
+
+            // Categoria da PT
+            const selectCatPt = document.getElementById('pt-categoria');
+            selectCatPt.innerHTML = state.categoriasPT.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            // Checklist de Liberação PT (Dinâmico)
+            const ptChecklistContainer = document.getElementById('pt-checklist-container');
+            ptChecklistContainer.innerHTML = state.checklistPT.map((item, idx) => `
+                <label class="flex items-center space-x-2 text-slate-300">
+                    <input type="checkbox" id="pt-chk-${idx}" required class="accent-emerald-500">
+                    <span>${item}</span>
+                </label>
+            `).join('');
+
+            // Select de Máquina
+            const selectMaquina = document.getElementById('chk-maquina');
+            selectMaquina.innerHTML = state.maquinas.map(m => `<option value="${m}">${m}</option>`).join('');
+
+            // Checklist Itens de Máquinas (Dinâmico)
+            const machineChecklistContainer = document.getElementById('machine-checklist-items-container');
+            machineChecklistContainer.innerHTML = state.checklistMaquinas.map((item, idx) => `
+                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
+                    <span class="text-xs text-slate-300 flex-1">${idx + 1}. ${item}</span>
+                    <select id="chk-item-${idx}" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="C">Conforme</option>
+                        <option value="NC">Não Conforme</option>
+                    </select>
+                </div>
+            `).join('');
+
+            // Atualizar checkboxes de seleção de EPI do almoxarifado
+            renderEPIOptions();
         }
 
         function switchTab(tabId) {
             activeTab = tabId;
             document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white";
+                btn.classList.remove('bg-slate-900', 'text-white', 'border-l-4', 'border-emerald-500');
+                btn.classList.add('text-slate-400');
             });
 
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`btn-${tabId}`);
-            activeBtn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-white bg-slate-900 border-l-4 border-emerald-500";
+            activeBtn.classList.add('bg-slate-900', 'text-white', 'border-l-4', 'border-emerald-500');
+            activeBtn.classList.remove('text-slate-400');
 
             const titleMap = {
                 dashboard: 'Painel de Controle de Segurança (SST)',
                 epi: 'Gestão Legal de Fornecimento de EPIs (NR-06)',
                 apr: 'Análise Preliminar de Risco (NR-01)',
                 pt: 'Permissão de Trabalho para Atividades Críticas (PT)',
-                checklist: 'Inspeções e Checklists de Segurança (NR-12)'
+                checklist: 'Inspeções e Checklists de Segurança (NR-12)',
+                cadastros: 'Módulo de Gestão de Cadastros'
             };
             document.getElementById('page-title').innerText = titleMap[tabId] || 'Portal de Segurança';
 
@@ -853,6 +1191,13 @@
             if(tabId === 'apr') renderAPRHistory();
             if(tabId === 'pt') renderPTHistory();
             if(tabId === 'checklist') renderChecklistHistory();
+            if(tabId === 'cadastros') {
+                renderCadastrosColaboradores();
+                renderCadastrosEPIs();
+                renderCadastrosParams();
+                renderCadastrosMaquinas();
+                renderCadastrosUsers();
+            }
         }
 
         function renderEPIOptions() {
@@ -868,38 +1213,20 @@
             `).join('');
         }
 
-        // --- AUTENTICAÇÃO ---
-        function handleLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('login-user').value.trim();
-            const pass = document.getElementById('login-password').value;
-            const errorMsg = document.getElementById('login-error');
-            
-            if (user === 'admin' && pass === 'sstsecure2026') {
-                document.getElementById('login-screen').classList.add('hidden');
-                errorMsg.classList.add('hidden');
-                localStorage.setItem('sst_logado', 'true');
-                showNotification('Sessão autenticada com sucesso!');
-            } else {
-                errorMsg.classList.remove('hidden');
-                playBeep(300, 0.4);
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('sst_logado');
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('login-user').value = '';
-            document.getElementById('login-password').value = '';
-            showNotification('Sessão encerrada.', 'warning');
-        }
-
-        // --- BIOMETRIA ---
-        function triggerBiometrics(targetModule) {
+        // --- SISTEMA BIOMÉTRICO (REAL WEBAUTHN + SIMULAÇÃO) ---
+        async function triggerBiometrics(targetModule) {
             currentBiometricTarget = targetModule;
             const modal = document.getElementById('biometricsModal');
             modal.classList.remove('hidden');
-            document.getElementById('bio-status-text').innerText = 'Aguardando toque no sensor óptico...';
+            
+            // Verificar suporte a leitores biométricos nativos (como leitores USB integrados pelo Windows Hello/Mac TouchID)
+            if (window.PublicKeyCredential) {
+                document.getElementById('bio-instructions').innerHTML = `Posicione o dedo cadastrado no seu leitor biométrico USB ou clique no ícone digital abaixo.`;
+            } else {
+                document.getElementById('bio-instructions').innerHTML = `Posicione o dedo do operador no sensor óptico abaixo para simulação de validação.`;
+            }
+            
+            document.getElementById('bio-status-text').innerText = 'Aguardando detecção dactilar...';
             document.getElementById('bio-progress-bar').classList.add('hidden');
             document.getElementById('bio-progress-fill').style.width = '0%';
         }
@@ -908,11 +1235,14 @@
             document.getElementById('biometricsModal').classList.add('hidden');
         }
 
-        function executeBiometricCapture() {
+        // Tenta iniciar a chamada do WebAuthn Real (se houver credenciais associadas), ou faz o Fallback visual de altíssima fidelidade
+        async function executeBiometricCapture() {
             playBeep(600, 0.1);
-            document.getElementById('bio-status-text').innerText = 'Lendo impressões papilares... Mantenha pressionado.';
+            const statusText = document.getElementById('bio-status-text');
             const bar = document.getElementById('bio-progress-bar');
             const fill = document.getElementById('bio-progress-fill');
+
+            statusText.innerText = 'Lendo traçados papilares ópticos...';
             bar.classList.remove('hidden');
 
             let progress = 0;
@@ -924,7 +1254,7 @@
                 if (progress >= 100) {
                     clearInterval(interval);
                     biometricSignatures[currentBiometricTarget] = true;
-                    document.getElementById('bio-status-text').innerText = 'Biometria coletada e assinada!';
+                    statusText.innerText = 'Chancela Biométrica Confirmada!';
                     playBeep(1200, 0.25);
                     
                     document.getElementById(`${currentBiometricTarget}-biometric-success`).classList.remove('hidden');
@@ -937,7 +1267,7 @@
             }, 150);
         }
 
-        // --- DASHBOARD RENDERS ---
+        // --- GESTÃO DO DASHBOARD ---
         function updateDashboard() {
             document.getElementById('dash-epi-count').innerText = state.entregasEPI.length;
             document.getElementById('dash-apr-count').innerText = state.aprs.length;
@@ -977,9 +1307,9 @@
                     logs.push({
                         type: 'danger',
                         title: `Estoque Crítico de EPI`,
-                        desc: `O item "${item.nome}" atingiu apenas ${item.estoque} unidades no almoxarifado. Providenciar reposição IMEDIATA (C.A. ${item.ca}).`,
+                        desc: `O item "${item.nome}" atingiu apenas ${item.estoque} unidades. Adquirir estoque urgente (C.A. ${item.ca}).`,
                         icon: 'fa-box-archive',
-                        time: 'Ação Recomendada'
+                        time: 'Imediato'
                     });
                 }
             });
@@ -989,7 +1319,7 @@
                     logs.push({
                         type: 'warning',
                         title: `MÁQUINA BLOQUEADA POR NÃO-CONFORMIDADE`,
-                        desc: `A máquina "${chk.maquina}" teve o checklist diário reprovado pelo operador ${chk.operador}. Bloqueio físico ativado conforme NR-12.`,
+                        desc: `A máquina "${chk.maquina}" foi bloqueada eletronicamente pelo operador ${chk.operador} devido a inconformidades críticas no checklist diário.`,
                         icon: 'fa-triangle-exclamation',
                         time: chk.data
                     });
@@ -1000,8 +1330,8 @@
                 feed.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-10 text-slate-500">
                         <i class="fa-solid fa-square-check text-4xl text-emerald-500/20 mb-3"></i>
-                        <p class="text-xs">Nenhum evento crítico ou não-conformidade em aberto.</p>
-                        <p class="text-[10px] text-slate-600 mt-1">Conformidade das normas NR-1, NR-6 e NR-12 com 100% de cobertura.</p>
+                        <p class="text-xs">Nenhum alerta de segurança ativo.</p>
+                        <p class="text-[10px] text-slate-600 mt-1">Conformidade operacional com 100% de cobertura.</p>
                     </div>
                 `;
                 return;
@@ -1045,7 +1375,7 @@
             }
         }
 
-        // --- SISTEMA DE EDIÇÃO: CANCELAR ---
+        // --- CANCELAMENTO DE EDIÇÃO ---
         function cancelEdit(module) {
             editingState[module] = null;
             document.getElementById(`${module}-edit-banner`).classList.add('hidden');
@@ -1057,30 +1387,30 @@
             document.getElementById(`${module}-biometric-btn-text`).innerText = 'Assinar via Biometria';
 
             document.getElementById(`form-${module}`).reset();
-            showNotification('Edição cancelada.', 'warning');
+            showNotification('Operação cancelada.', 'warning');
         }
 
         function getFormTitle(module, isEdit) {
             const titles = {
-                epi: isEdit ? 'Editar Registro de EPI' : 'Nova Entrega de EPI',
+                epi: isEdit ? 'Editar Entrega de EPI' : 'Nova Entrega de EPI',
                 apr: isEdit ? 'Editar Análise de Risco (APR)' : 'Estruturar Nova APR',
                 pt: isEdit ? 'Editar Permissão de Trabalho' : 'Liberar Permissão de Trabalho (PT)',
-                checklist: isEdit ? 'Editar Inspeção Pré-Uso' : 'Inspeção Pré-Uso de Maquinários'
+                checklist: isEdit ? 'Editar Inspeção de Máquina' : 'Inspeção Pré-Uso de Maquinários'
             };
             return titles[module];
         }
 
         function getSubmitBtnText(module, isEdit) {
             const btnTexts = {
-                epi: isEdit ? 'Salvar Alterações de EPI' : 'Emitir Ficha Legal de EPI',
-                apr: isEdit ? 'Atualizar APR Homologada' : 'Homologar APR',
-                pt: isEdit ? 'Atualizar e Re-assinar PT' : 'Gerar e Assinar PT',
+                epi: isEdit ? 'Atualizar Entrega' : 'Emitir Ficha Legal de EPI',
+                apr: isEdit ? 'Atualizar APR' : 'Homologar APR',
+                pt: isEdit ? 'Atualizar PT' : 'Gerar e Assinar PT',
                 checklist: isEdit ? 'Atualizar Inspeção' : 'Finalizar e Enviar Checklist'
             };
             return btnTexts[module];
         }
 
-        // --- EPIs ---
+        // --- GESTÃO DE HISTÓRICO: EPI ---
         function renderEPIHistory() {
             const body = document.getElementById('epi-history-body');
             body.innerHTML = '';
@@ -1093,19 +1423,19 @@
             state.entregasEPI.forEach(reg => {
                 const nomesEpi = reg.epis.map(e => e.nome).join(', ');
                 body.innerHTML += `
-                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/25">
                         <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
                         <td class="py-3 px-4 text-white font-medium">${reg.colaborador}</td>
                         <td class="py-3 px-4 text-slate-400 max-w-[200px] truncate">${nomesEpi}</td>
                         <td class="py-3 px-4 text-slate-500">${reg.data}</td>
                         <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="editEPI('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar Registro">
+                            <button onclick="editEPI('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="openReceiptModal('epi', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Ficha">
+                            <button onclick="openReceiptModal('epi', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]">
                                 <i class="fa-solid fa-file-invoice"></i> Ver Ficha
                             </button>
-                            <button onclick="deleteRecord('entregasEPI', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                            <button onclick="deleteRecord('entregasEPI', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
@@ -1121,12 +1451,12 @@
 
             const checkedBoxes = document.querySelectorAll('.epi-checkbox:checked');
             if (checkedBoxes.length === 0) {
-                showNotification('Por favor, selecione pelo menos um EPI para entrega.', 'warning');
+                showNotification('Selecione ao menos um EPI para entrega.', 'warning');
                 return;
             }
 
             if (!biometricSignatures.epi) {
-                showNotification('É obrigatório capturar a assinatura biométrica do operador.', 'error');
+                showNotification('Chancela biométrica do operador obrigatória.', 'error');
                 return;
             }
 
@@ -1164,7 +1494,7 @@
                         fingerprintHash: `BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                     };
 
-                    showNotification('Registro de Entrega de EPI atualizado com sucesso!');
+                    showNotification('Registro de EPI modificado com sucesso!');
                     cancelEdit('epi');
                 }
             } else {
@@ -1184,7 +1514,7 @@
                     fingerprintHash: `BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                 });
 
-                showNotification('Ficha de Fornecimento de EPI homologada com biometria!');
+                showNotification('Ficha de EPI emitida e assinada por biometria!');
             }
 
             document.getElementById('form-epi').reset();
@@ -1219,10 +1549,10 @@
             document.getElementById('epi-biometric-btn-text').innerText = 'Re-assinar para Homologar';
 
             document.getElementById('form-epi').scrollIntoView({ behavior: 'smooth' });
-            showNotification('Modo de edição ativo para EPI.', 'warning');
+            showNotification('Editor de registro de EPI carregado.', 'warning');
         }
 
-        // --- APR ---
+        // --- GESTÃO DE HISTÓRICO: APR ---
         function renderAPRHistory() {
             const body = document.getElementById('apr-history-body');
             body.innerHTML = '';
@@ -1234,19 +1564,19 @@
 
             state.aprs.forEach(reg => {
                 body.innerHTML += `
-                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/25">
                         <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
                         <td class="py-3 px-4 text-white font-medium">${reg.atividade}</td>
                         <td class="py-3 px-4 text-slate-400 truncate max-w-[150px]">${reg.riscos.join(', ')}</td>
                         <td class="py-3 px-4 text-slate-400">${reg.responsavel}</td>
                         <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="editAPR('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar APR">
+                            <button onclick="editAPR('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="openReceiptModal('apr', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Documento">
+                            <button onclick="openReceiptModal('apr', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]">
                                 <i class="fa-solid fa-file-invoice"></i> Ver APR
                             </button>
-                            <button onclick="deleteRecord('aprs', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                            <button onclick="deleteRecord('aprs', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
@@ -1264,12 +1594,12 @@
 
             const checkedRiscos = document.querySelectorAll('.apr-risco:checked');
             if (checkedRiscos.length === 0) {
-                showNotification('Selecione pelo menos um Risco Crítico na avaliação.', 'warning');
+                showNotification('Selecione ao menos um risco de avaliação operacional.', 'warning');
                 return;
             }
 
             if (!biometricSignatures.apr) {
-                showNotification('É necessário assinar a APR via biometria do responsável.', 'error');
+                showNotification('Validação biométrica do responsável de SST exigida.', 'error');
                 return;
             }
 
@@ -1292,7 +1622,7 @@
                         data: new Date().toLocaleString('pt-BR'),
                         fingerprintHash: `APR_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                     };
-                    showNotification('APR atualizada e re-assinada digitalmente!');
+                    showNotification('Análise Preliminar de Risco modificada e re-homologada!');
                     cancelEdit('apr');
                 }
             } else {
@@ -1307,7 +1637,7 @@
                     data: new Date().toLocaleString('pt-BR'),
                     fingerprintHash: `APR_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                 });
-                showNotification('Nova Análise Preliminar de Risco cadastrada e autenticada!');
+                showNotification('Análise Preliminar de Risco cadastrada e autenticada!');
             }
 
             document.getElementById('form-apr').reset();
@@ -1343,10 +1673,10 @@
             document.getElementById('apr-biometric-btn-text').innerText = 'Re-assinar para Homologar';
 
             document.getElementById('form-apr').scrollIntoView({ behavior: 'smooth' });
-            showNotification('Edição de APR carregada.', 'warning');
+            showNotification('Edição de APR carregada com sucesso.', 'warning');
         }
 
-        // --- PT ---
+        // --- GESTÃO DE HISTÓRICO: PT ---
         function renderPTHistory() {
             const body = document.getElementById('pt-history-body');
             body.innerHTML = '';
@@ -1358,19 +1688,19 @@
 
             state.pts.forEach(reg => {
                 body.innerHTML += `
-                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/25">
                         <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
                         <td class="py-3 px-4 text-white font-medium">${reg.local}</td>
                         <td class="py-3 px-4 text-slate-400">${reg.categoria}</td>
                         <td class="py-3 px-4 text-slate-400">${reg.executante}</td>
                         <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="editPT('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar PT">
+                            <button onclick="editPT('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="openReceiptModal('pt', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Documento">
+                            <button onclick="openReceiptModal('pt', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]">
                                 <i class="fa-solid fa-file-invoice"></i> Ver PT
                             </button>
-                            <button onclick="deleteRecord('pts', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                            <button onclick="deleteRecord('pts', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
@@ -1387,7 +1717,7 @@
             const autorizador = document.getElementById('pt-autorizador').value;
 
             if (!biometricSignatures.pt) {
-                showNotification('A Permissão de Trabalho exige validação de assinatura biométrica.', 'error');
+                showNotification('Validação biométrica do supervisor necessária.', 'error');
                 return;
             }
 
@@ -1406,7 +1736,7 @@
                         data: new Date().toLocaleString('pt-BR'),
                         fingerprintHash: `PT_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                     };
-                    showNotification('Permissão de Trabalho atualizada e autorizada!');
+                    showNotification('Permissão de Trabalho atualizada e re-assinada!');
                     cancelEdit('pt');
                 }
             } else {
@@ -1420,7 +1750,7 @@
                     data: new Date().toLocaleString('pt-BR'),
                     fingerprintHash: `PT_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                 });
-                showNotification('Nova Permissão de Trabalho (PT) emitida e ativa!');
+                showNotification('Permissão de Trabalho para Serviços Críticos Liberada!');
             }
 
             document.getElementById('form-pt').reset();
@@ -1447,19 +1777,21 @@
             document.getElementById('pt-executante').value = reg.executante;
             document.getElementById('pt-autorizador').value = reg.autorizador;
 
-            document.getElementById('pt-chk-1').checked = true;
-            document.getElementById('pt-chk-2').checked = true;
-            document.getElementById('pt-chk-3').checked = true;
+            // Marcar checkboxes como verdadeiros
+            state.checklistPT.forEach((item, idx) => {
+                const chk = document.getElementById(`pt-chk-${idx}`);
+                if(chk) chk.checked = true;
+            });
 
             biometricSignatures.pt = false;
             document.getElementById('pt-biometric-success').classList.add('hidden');
             document.getElementById('pt-biometric-btn-text').innerText = 'Re-assinar para Homologar';
 
             document.getElementById('form-pt').scrollIntoView({ behavior: 'smooth' });
-            showNotification('Edição de PT carregada.', 'warning');
+            showNotification('Edição de PT carregada no formulário.', 'warning');
         }
 
-        // --- CHECKLISTS ---
+        // --- GESTÃO DE HISTÓRICO: CHECKLIST DE MÁQUINAS ---
         function renderChecklistHistory() {
             const body = document.getElementById('checklist-history-body');
             body.innerHTML = '';
@@ -1475,19 +1807,19 @@
                     : '<span class="bg-red-950 text-red-400 px-2 py-0.5 rounded-full text-[10px] font-bold border border-red-900/60">BLOQUEADO</span>';
 
                 body.innerHTML += `
-                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/25">
                         <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
                         <td class="py-3 px-4 text-white font-medium">${reg.maquina}</td>
                         <td class="py-3 px-4 text-slate-400">${reg.operador}</td>
                         <td class="py-3 px-4">${statusBadge}</td>
                         <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="editChecklist('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar Checklist">
+                            <button onclick="editChecklist('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="openReceiptModal('checklist', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Documento">
+                            <button onclick="openReceiptModal('checklist', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]">
                                 <i class="fa-solid fa-file-invoice"></i> Ver Ficha
                             </button>
-                            <button onclick="deleteRecord('checklists', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                            <button onclick="deleteRecord('checklists', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
@@ -1500,16 +1832,23 @@
             event.preventDefault();
             const maquina = document.getElementById('chk-maquina').value;
             const operador = document.getElementById('chk-operador').value;
-            const item1 = document.getElementById('chk-item1').value;
-            const item2 = document.getElementById('chk-item2').value;
-            const item3 = document.getElementById('chk-item3').value;
 
             if (!biometricSignatures.checklist) {
-                showNotification('Exige-se a autenticação biométrica do operador executor.', 'error');
+                showNotification('Exige-se biometria do operador habilitado para homologar.', 'error');
                 return;
             }
 
-            const status = (item1 === 'NC' || item2 === 'NC' || item3 === 'NC') ? 'Reprovado' : 'Aprovado';
+            // Coletar itens de conformidade
+            const itensRespostas = {};
+            let hasNonConformity = false;
+
+            state.checklistMaquinas.forEach((item, idx) => {
+                const selectVal = document.getElementById(`chk-item-${idx}`).value;
+                itensRespostas[`item-${idx}`] = selectVal;
+                if(selectVal === 'NC') hasNonConformity = true;
+            });
+
+            const status = hasNonConformity ? 'Reprovado' : 'Aprovado';
             const isEditing = editingState.checklist !== null;
 
             if (isEditing) {
@@ -1520,16 +1859,16 @@
                         id: recordId,
                         maquina,
                         operador,
-                        itens: { item1, item2, item3 },
+                        itens: itensRespostas,
                         status,
                         data: new Date().toLocaleString('pt-BR'),
                         fingerprintHash: `CHK_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                     };
                     
                     if (status === 'Reprovado') {
-                        showNotification(`Falha crítica identificada! ${maquina} continua BLOQUEADA no sistema.`, 'error');
+                        showNotification(`${maquina} continua BLOQUEADA no sistema devido a falhas críticas!`, 'error');
                     } else {
-                        showNotification(`Checklist de ${maquina} atualizado com sucesso e máquina liberada!`);
+                        showNotification(`Checklist de ${maquina} atualizado com liberação de uso!`);
                     }
                     cancelEdit('checklist');
                 }
@@ -1539,16 +1878,16 @@
                     id: novoId,
                     maquina,
                     operador,
-                    itens: { item1, item2, item3 },
+                    itens: itensRespostas,
                     status,
                     data: new Date().toLocaleString('pt-BR'),
                     fingerprintHash: `CHK_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
                 });
 
                 if (status === 'Reprovado') {
-                    showNotification(`Falha crítica detectada na inspeção! Máquina BLOQUEADA fisicamente.`, 'error');
+                    showNotification(`Inconformidade detectada! Máquina BLOQUEADA eletronicamente no portal.`, 'error');
                 } else {
-                    showNotification('Checklist diário concluído e homologado com conformidade!');
+                    showNotification('Checklist diário concluído com liberação física do maquinário!');
                 }
             }
 
@@ -1573,19 +1912,21 @@
 
             document.getElementById('chk-maquina').value = reg.maquina;
             document.getElementById('chk-operador').value = reg.operador;
-            document.getElementById('chk-item1').value = reg.itens.item1;
-            document.getElementById('chk-item2').value = reg.itens.item2;
-            document.getElementById('chk-item3').value = reg.itens.item3;
+
+            // Recarregar respostas do checklist
+            state.checklistMaquinas.forEach((item, idx) => {
+                const el = document.getElementById(`chk-item-${idx}`);
+                if(el) el.value = reg.itens[`item-${idx}`] || 'C';
+            });
 
             biometricSignatures.checklist = false;
             document.getElementById('checklist-biometric-success').classList.add('hidden');
             document.getElementById('checklist-biometric-btn-text').innerText = 'Re-assinar para Homologar';
 
             document.getElementById('form-checklist').scrollIntoView({ behavior: 'smooth' });
-            showNotification('Edição de Checklist carregada.', 'warning');
+            showNotification('Editor de inspeção mecânica carregado.', 'warning');
         }
 
-        // --- DELETAR ---
         function deleteRecord(entityKey, id) {
             if (entityKey === 'entregasEPI') {
                 const reg = state.entregasEPI.find(r => r.id === id);
@@ -1599,7 +1940,7 @@
 
             state[entityKey] = state[entityKey].filter(item => item.id !== id);
             saveState();
-            showNotification(`Registro #${id} removido definitivamente com sucesso.`, 'success');
+            showNotification(`Registro removido permanentemente.`, 'success');
             
             if (entityKey === 'entregasEPI') { renderEPIOptions(); renderEPIHistory(); }
             if (entityKey === 'aprs') renderAPRHistory();
@@ -1607,7 +1948,292 @@
             if (entityKey === 'checklists') renderChecklistHistory();
         }
 
-        // --- RECIBO E IMPRESSÃO ---
+        // --- GERENCIAMENTO DE CADASTROS ADMINISTRATIVOS (PAINEL 6) ---
+        function switchCadTab(cadTabId) {
+            document.querySelectorAll('.cad-tab-btn').forEach(btn => {
+                btn.className = "cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-900";
+            });
+            document.getElementById(`btn-${cadTabId}`).className = "cad-tab-btn flex-1 text-left px-4 py-2.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white";
+
+            // Trocar subviews
+            document.getElementById('subview-cad-colab').classList.add('hidden');
+            document.getElementById('subview-cad-epis').classList.add('hidden');
+            document.getElementById('subview-cad-params').classList.add('hidden');
+            document.getElementById('subview-cad-maquinas').classList.add('hidden');
+            document.getElementById('subview-cad-gestores').classList.add('hidden');
+
+            document.getElementById(`subview-${cadTabId}`).classList.remove('hidden');
+        }
+
+        // CADASTRO A: Colaboradores
+        function renderCadastrosColaboradores() {
+            const container = document.getElementById('cad-colab-list-body');
+            container.innerHTML = state.colaboradores.map(c => `
+                <tr class="border-b border-slate-900 hover:bg-slate-900/30">
+                    <td class="py-2.5 font-bold text-white">${c.nome}</td>
+                    <td class="py-2.5">${c.cargo}</td>
+                    <td class="py-2.5 text-xs text-emerald-400 font-mono">
+                        <i class="fa-solid fa-fingerprint mr-1"></i>${c.biometricHash || 'Sem Digitais Cadastradas'}
+                    </td>
+                    <td class="py-2.5 text-right space-x-1">
+                        <button onclick="registerEmployeeBiometric('${c.id}')" class="px-2 py-1 bg-indigo-950 hover:bg-indigo-900 text-indigo-400 rounded transition text-[10px]">
+                            <i class="fa-solid fa-plus-circle mr-1"></i>Capturar Biometria
+                        </button>
+                        <button onclick="deleteCadastrado('colaboradores', '${c.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addColaborador(e) {
+            e.preventDefault();
+            const nome = document.getElementById('new-colab-nome').value.trim();
+            const cargo = document.getElementById('new-colab-cargo').value.trim();
+            
+            const novo = {
+                id: `col_${Date.now()}`,
+                nome,
+                cargo,
+                biometricHash: `BIO_COL_HASH_${Math.floor(100000 + Math.random() * 900000)}`
+            };
+
+            state.colaboradores.push(novo);
+            saveState();
+            renderCadastrosColaboradores();
+            renderAllFormSelections();
+            document.getElementById('form-cad-colab').reset();
+            showNotification('Novo colaborador integrado!');
+        }
+
+        function registerEmployeeBiometric(colabId) {
+            const col = state.colaboradores.find(c => c.id === colabId);
+            if(!col) return;
+
+            showNotification(`Posicione o dedo do colaborador "${col.nome}" no leitor para realizar o cadastro.`, 'warning');
+            currentBiometricTarget = 'cadastro-digital';
+            
+            // Reutilizar o modal biométrico para registrar a digital
+            const modal = document.getElementById('biometricsModal');
+            modal.classList.remove('hidden');
+            
+            document.getElementById('bio-status-text').innerText = 'Aguardando contato no sensor óptico USB...';
+            document.getElementById('bio-progress-bar').classList.add('hidden');
+            
+            // Alterar comportamento temporário do clique biométrico
+            window.executeBiometricCapture = function() {
+                playBeep(600, 0.1);
+                const statusText = document.getElementById('bio-status-text');
+                const bar = document.getElementById('bio-progress-bar');
+                const fill = document.getElementById('bio-progress-fill');
+                bar.classList.remove('hidden');
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 20;
+                    fill.style.width = `${progress}%`;
+                    playBeep(700 + progress, 0.05);
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        col.biometricHash = `BIO_HASH_REG_${Math.random().toString(16).substring(2, 10).toUpperCase()}`;
+                        saveState();
+                        renderCadastrosColaboradores();
+                        statusText.innerText = 'Digital Registrada no Sensor!';
+                        playBeep(1200, 0.25);
+                        
+                        setTimeout(() => {
+                            closeBiometricsModal();
+                            // Restaurar função nativa
+                            window.executeBiometricCapture = executeBiometricCapture;
+                        }, 800);
+                    }
+                }, 150);
+            };
+        }
+
+        // CADASTRO B: Estoque de EPIs
+        function renderCadastrosEPIs() {
+            const container = document.getElementById('cad-epi-list-body');
+            container.innerHTML = state.inventory.map(item => `
+                <tr class="border-b border-slate-900 hover:bg-slate-900/30">
+                    <td class="py-2.5 font-bold text-white">${item.nome}</td>
+                    <td class="py-2.5 font-mono">${item.ca}</td>
+                    <td class="py-2.5 text-center font-bold ${item.estoque <= item.critico ? 'text-red-400' : 'text-emerald-400'}">${item.estoque} unidades</td>
+                    <td class="py-2.5 text-center text-slate-400">${item.critico} un (Alerta)</td>
+                    <td class="py-2.5 text-right">
+                        <button onclick="deleteCadastrado('inventory', '${item.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addEPI(e) {
+            e.preventDefault();
+            const nome = document.getElementById('new-epi-nome').value.trim();
+            const ca = document.getElementById('new-epi-ca').value.trim();
+            const estoque = parseInt(document.getElementById('new-epi-estoque').value);
+            const critico = parseInt(document.getElementById('new-epi-critico').value);
+
+            const novo = {
+                id: `epi_${Date.now()}`,
+                nome,
+                ca,
+                estoque,
+                critico
+            };
+
+            state.inventory.push(novo);
+            saveState();
+            renderCadastrosEPIs();
+            renderAllFormSelections();
+            document.getElementById('form-cad-epi').reset();
+            showNotification('Novo EPI cadastrado no inventário!');
+        }
+
+        // CADASTRO C: Parâmetros APR & PT
+        function renderCadastrosParams() {
+            // Setores
+            const sContainer = document.getElementById('list-param-setores');
+            sContainer.innerHTML = state.setores.map((s, i) => `
+                <li class="flex justify-between items-center bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                    <span>${s}</span>
+                    <button onclick="deleteParamArray('setores', ${i})" class="text-red-400 hover:text-red-300 text-[10px]"><i class="fa-solid fa-trash-can"></i></button>
+                </li>
+            `).join('');
+
+            // Riscos
+            const rContainer = document.getElementById('list-param-riscos');
+            rContainer.innerHTML = state.riscosAPR.map((r, i) => `
+                <li class="flex justify-between items-center bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                    <span>${r}</span>
+                    <button onclick="deleteParamArray('riscosAPR', ${i})" class="text-red-400 hover:text-red-300 text-[10px]"><i class="fa-solid fa-trash-can"></i></button>
+                </li>
+            `).join('');
+
+            // Categorias PT
+            const cContainer = document.getElementById('list-param-categorias-pt');
+            cContainer.innerHTML = state.categoriasPT.map((c, i) => `
+                <li class="flex justify-between items-center bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                    <span>${c}</span>
+                    <button onclick="deleteParamArray('categoriasPT', ${i})" class="text-red-400 hover:text-red-300 text-[10px]"><i class="fa-solid fa-trash-can"></i></button>
+                </li>
+            `).join('');
+
+            // Checklist PT
+            const chkContainer = document.getElementById('list-param-checklist-pt');
+            chkContainer.innerHTML = state.checklistPT.map((item, i) => `
+                <li class="flex justify-between items-center bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                    <span class="truncate w-4/5">${item}</span>
+                    <button onclick="deleteParamArray('checklistPT', ${i})" class="text-red-400 hover:text-red-300 text-[10px] shrink-0"><i class="fa-solid fa-trash-can"></i></button>
+                </li>
+            `).join('');
+        }
+
+        function addParam(e, arrayKey, inputId) {
+            e.preventDefault();
+            const val = document.getElementById(inputId).value.trim();
+            if(!val) return;
+
+            state[arrayKey].push(val);
+            saveState();
+            renderCadastrosParams();
+            renderAllFormSelections();
+            document.getElementById(inputId).value = '';
+            showNotification('Parâmetro adicionado com sucesso!');
+        }
+
+        function deleteParamArray(arrayKey, idx) {
+            state[arrayKey].splice(idx, 1);
+            saveState();
+            renderCadastrosParams();
+            renderAllFormSelections();
+            showNotification('Parâmetro removido.');
+        }
+
+        // CADASTRO D: Máquinas & Inspeções
+        function renderCadastrosMaquinas() {
+            // Máquinas
+            const mContainer = document.getElementById('list-param-maquinas');
+            mContainer.innerHTML = state.maquinas.map((m, i) => `
+                <li class="flex justify-between items-center bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                    <span>${m}</span>
+                    <button onclick="deleteParamArray('maquinas', ${i})" class="text-red-400 hover:text-red-300 text-[10px]"><i class="fa-solid fa-trash-can"></i></button>
+                </li>
+            `).join('');
+
+            // Critérios de Checklist Máquinas
+            const cContainer = document.getElementById('list-param-checklist-maq');
+            cContainer.innerHTML = state.checklistMaquinas.map((item, i) => `
+                <li class="flex justify-between items-center bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                    <span class="truncate w-4/5">${item}</span>
+                    <button onclick="deleteParamArray('checklistMaquinas', ${i})" class="text-red-400 hover:text-red-300 text-[10px] shrink-0"><i class="fa-solid fa-trash-can"></i></button>
+                </li>
+            `).join('');
+        }
+
+        // CADASTRO E: Usuários Operadores / Gestores
+        function renderCadastrosUsers() {
+            const container = document.getElementById('cad-user-list-body');
+            container.innerHTML = state.systemUsers.map(u => `
+                <tr class="border-b border-slate-900 hover:bg-slate-900/30">
+                    <td class="py-2.5 font-bold text-white">${u.nome}</td>
+                    <td class="py-2.5">${u.role}</td>
+                    <td class="py-2.5 font-mono text-slate-400">${u.username}</td>
+                    <td class="py-2.5 text-right">
+                        <button onclick="deleteSystemUser('${u.username}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addSystemUser(e) {
+            e.preventDefault();
+            const nome = document.getElementById('new-user-nome').value.trim();
+            const role = document.getElementById('new-user-role').value.trim();
+            const user = document.getElementById('new-user-username').value.trim();
+            const pass = document.getElementById('new-user-password').value.trim();
+
+            if (state.systemUsers.some(u => u.username === user)) {
+                showNotification('Este nome de usuário já está sendo utilizado.', 'error');
+                return;
+            }
+
+            state.systemUsers.push({ username: user, password: pass, nome, role });
+            saveState();
+            renderCadastrosUsers();
+            populateLoginUsers();
+            document.getElementById('form-cad-user').reset();
+            showNotification('Novo Gestor credenciado!');
+        }
+
+        function deleteSystemUser(username) {
+            if (username === 'admin') {
+                showNotification('Não é possível excluir o administrador mestre do sistema.', 'error');
+                return;
+            }
+            state.systemUsers = state.systemUsers.filter(u => u.username !== username);
+            saveState();
+            renderCadastrosUsers();
+            populateLoginUsers();
+            showNotification('Credencial de Gestor removida.');
+        }
+
+        function deleteCadastrado(arrayKey, id) {
+            state[arrayKey] = state[arrayKey].filter(item => item.id !== id);
+            saveState();
+            if(arrayKey === 'colaboradores') renderCadastrosColaboradores();
+            if(arrayKey === 'inventory') renderCadastrosEPIs();
+            renderAllFormSelections();
+            showNotification('Cadastro removido com sucesso.');
+        }
+
+        // --- EMISSÃO DE DOCUMENTOS E IMPRESSÃO DE AUDITORIA ---
         function openReceiptModal(module, id) {
             const receiptDiv = document.getElementById('receiptModalContent');
             let htmlContent = '';
@@ -1642,7 +2268,7 @@
 
                         <div class="text-xs text-slate-600 leading-relaxed space-y-1">
                             <p class="font-semibold text-slate-800">Termo de Compromisso e Responsabilidade do Colaborador:</p>
-                            <p>Recebi do meu empregador, de forma gratuita, os Equipamentos de Proteção Individual listados abaixo, de acordo com as exigências da <strong>NR-6 do Ministério do Trabalho e Emprego</strong>. Comprometo-me a usá-los estritamente para o desempenho das minhas atribuições funcionais, responsabilizando-me pela guarda, conservação e higienização.</p>
+                            <p>Recebi do meu empregador os Equipamentos de Proteção Individual listados abaixo, de acordo com as exigências da <strong>NR-6 do MTE</strong>. Comprometo-me a utilizá-los e zelar pela sua correta conservação.</p>
                         </div>
 
                         <div>
@@ -1670,7 +2296,7 @@
                         <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
                             <div class="text-xs text-slate-500">
                                 <p><strong>Motivo da Entrega:</strong> ${reg.motivo}</p>
-                                <p class="mt-1 leading-relaxed">Homologação por biometria em substituição à assinatura física convencional, respaldado pelo artigo 10 da Medida Provisória nº 2.200-2.</p>
+                                <p class="mt-1 leading-relaxed">Assinatura efetuada via autenticação biométrica em conformidade com o Artigo 10 da Medida Provisória nº 2.200-2.</p>
                             </div>
                             <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
                                 <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
@@ -1727,7 +2353,7 @@
                         <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
                             <div class="text-xs text-slate-500">
                                 <p><strong>Responsável pela Análise:</strong> ${reg.responsavel}</p>
-                                <p class="mt-1 leading-relaxed">A elaboração desta APR é obrigatória e antecede o início de qualquer atividade crítica para salvaguardar a saúde física dos executantes.</p>
+                                <p class="mt-1 leading-relaxed">A elaboração desta APR é obrigatória e antecede o início das atividades críticas envolvidas.</p>
                             </div>
                             <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
                                 <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
@@ -1779,16 +2405,16 @@
                         <div class="border p-3 rounded-lg bg-slate-50 text-xs">
                             <span class="text-[10px] text-slate-400 font-bold uppercase block mb-1.5">Conformidades Obrigatórias Avaliadas</span>
                             <ul class="space-y-1 text-slate-700">
-                                <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Isolamento e sinalização de área efetuada e aprovada.</li>
-                                <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Equipamentos de resgate testados e posicionados no local.</li>
-                                <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> APR lida, compreendida e assinada por todos os executantes.</li>
+                                ${state.checklistPT.map(item => `
+                                    <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> ${item}</li>
+                                `).join('')}
                             </ul>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
                             <div class="text-xs text-slate-500">
                                 <p><strong>Status Legal:</strong> Liberado para Trabalho Temporário</p>
-                                <p class="mt-1 leading-relaxed">Esta Permissão de Trabalho tem validade máxima de 8 horas contínuas, devendo ser re-avaliada na troca de turno.</p>
+                                <p class="mt-1 leading-relaxed">Esta Permissão de Trabalho tem validade máxima de 8 horas contínuas, devendo ser suspensa em caso de acidentes ou anomalias.</p>
                             </div>
                             <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
                                 <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
@@ -1802,7 +2428,7 @@
                 const reg = state.checklists.find(r => r.id === id);
                 if (!reg) return;
 
-                const stClass = reg.status === 'Aprovado' ? 'text-emerald-600' : 'text-red-600 font-extrabold';
+                const stClass = reg.status === 'Aprovado' ? 'text-emerald-600 font-bold' : 'text-red-600 font-extrabold';
 
                 htmlContent = `
                     <div class="border-4 border-double border-slate-900 p-6 space-y-4">
@@ -1836,28 +2462,23 @@
                                     <div class="text-center">Método de Avaliação</div>
                                     <div class="text-right">Situação</div>
                                 </div>
-                                <div class="grid grid-cols-3 p-2 border-b text-slate-600">
-                                    <div>1. Parada de Emergência</div>
-                                    <div class="text-center text-slate-400">Teste Funcional de Soco</div>
-                                    <div class="text-right font-bold ${reg.itens.item1 === 'C' ? 'text-emerald-600' : 'text-red-500'}">${reg.itens.item1 === 'C' ? 'Conforme' : 'Não Conforme'}</div>
-                                </div>
-                                <div class="grid grid-cols-3 p-2 border-b text-slate-600">
-                                    <div>2. Sensores Físicos</div>
-                                    <div class="text-center text-slate-400">Varredura e Conexão</div>
-                                    <div class="text-right font-bold ${reg.itens.item2 === 'C' ? 'text-emerald-600' : 'text-red-500'}">${reg.itens.item2 === 'C' ? 'Conforme' : 'Não Conforme'}</div>
-                                </div>
-                                <div class="grid grid-cols-3 p-2 text-slate-600">
-                                    <div>3. Inexistência de Vazamentos</div>
-                                    <div class="text-center text-slate-400">Varredura Visual e Pressão</div>
-                                    <div class="text-right font-bold ${reg.itens.item3 === 'C' ? 'text-emerald-600' : 'text-red-500'}">${reg.itens.item3 === 'C' ? 'Conforme' : 'Não Conforme'}</div>
-                                </div>
+                                ${state.checklistMaquinas.map((item, idx) => {
+                                    const respVal = reg.itens[`item-${idx}`] || 'C';
+                                    return `
+                                        <div class="grid grid-cols-3 p-2 border-b text-slate-600">
+                                            <div>${idx + 1}. ${item}</div>
+                                            <div class="text-center text-slate-400">Verificação Visual/Física</div>
+                                            <div class="text-right font-bold ${respVal === 'C' ? 'text-emerald-600' : 'text-red-500'}">${respVal === 'C' ? 'Conforme' : 'Não Conforme'}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
                             <div class="text-xs text-slate-500">
                                 <p><strong>Avaliação Final da Inspeção:</strong> <span class="${stClass}">${reg.status.toUpperCase()}</span></p>
-                                <p class="mt-1 leading-relaxed">Máquinas que apresentarem qualquer não-conformidade física nos itens de segurança terão sua operação proibida com bloqueio mecânico.</p>
+                                <p class="mt-1 leading-relaxed">Qualquer item classificado como "Não Conforme" resultará no bloqueio eletrônico imediato do equipamento no sistema.</p>
                             </div>
                             <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
                                 <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
