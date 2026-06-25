@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SST SECURE - Portal Integrado & Biometria</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Estilos de Impressão da Ficha */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receiptModalContent, #receiptModalContent * {
+                visibility: visible;
+            }
+            #receiptModalContent {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row">
+
+    <!-- TELA DE LOGIN BLOQUEADA (SOBREPOSIÇÃO) -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6">
+            <div class="flex flex-col items-center space-y-3 text-center">
+                <div class="h-14 w-14 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-emerald-900/30">
+                    S
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white tracking-tight">SST SECURE</h2>
+                    <p class="text-xs text-slate-400 mt-1">Insira suas credenciais corporativas para acessar o painel</p>
+                </div>
+            </div>
+            
+            <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Usuário</label>
+                    <input type="text" id="login-user" required placeholder="Ex: admin" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Senha de Acesso</label>
+                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div id="login-error" class="hidden text-xs text-red-400 flex items-center space-x-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>Usuário ou senha inválidos.</span>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition-all shadow-lg shadow-emerald-950/40">
+                    Validar Credenciais e Entrar
+                </button>
+            </form>
+            <div class="text-center">
+                <span class="text-[11px] text-slate-500">Acesso Padrão: admin / sstsecure2026</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-full md:w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0 no-print">
+        <div>
+            <!-- Header/Logo -->
+            <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
+                <div class="h-10 w-10 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-900/30">
+                    S
+                </div>
+                <div>
+                    <h1 class="font-bold text-md leading-none text-white">SST SECURE</h1>
+                    <span class="text-xs text-emerald-500 font-semibold tracking-wider uppercase">Portal de Operações</span>
+                </div>
+            </div>
+
+            <!-- Navegação -->
+            <nav class="p-4 space-y-1">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-white bg-slate-900 border-l-4 border-emerald-500">
+                    <i class="fa-solid fa-chart-line w-5 text-lg"></i>
+                    <span>Painel de Controle</span>
+                </button>
+                <button onclick="switchTab('epi')" id="btn-epi" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white">
+                    <i class="fa-solid fa-shield-halved w-5 text-lg"></i>
+                    <span>Entrega de EPIs</span>
+                </button>
+                <button onclick="switchTab('apr')" id="btn-apr" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white">
+                    <i class="fa-solid fa-file-shield w-5 text-lg"></i>
+                    <span>Módulo APR (Análise)</span>
+                </button>
+                <button onclick="switchTab('pt')" id="btn-pt" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white">
+                    <i class="fa-solid fa-file-signature w-5 text-lg"></i>
+                    <span>Permissão Trabalho (PT)</span>
+                </button>
+                <button onclick="switchTab('checklist')" id="btn-checklist" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white">
+                    <i class="fa-solid fa-clipboard-check w-5 text-lg"></i>
+                    <span>Checklist Máquinas</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Rodapé Sidebar -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex flex-col space-y-3">
+            <div class="flex items-center space-x-3">
+                <div class="h-8 w-8 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold text-slate-300">
+                    AD
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-200">Eng. Adriano Silva</p>
+                    <p class="text-[10px] text-slate-500">Gestor SST - CREA 54932</p>
+                </div>
+            </div>
+            <button onclick="handleLogout()" class="w-full text-left text-xs text-red-400 hover:text-red-300 transition flex items-center space-x-2 pt-2 border-t border-slate-900">
+                <i class="fa-solid fa-arrow-right-from-bracket text-red-400"></i>
+                <span>Encerrar Sessão</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-900">
+        
+        <!-- HEADER SUPERIOR -->
+        <header class="h-16 border-b border-slate-800 bg-slate-950/40 px-6 flex items-center justify-between no-print">
+            <div class="flex items-center space-x-4">
+                <h2 id="page-title" class="text-lg font-bold text-white tracking-tight">Painel de Controle</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="flex items-center space-x-2 text-xs bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded-full font-semibold border border-emerald-800/40">
+                    <span class="h-2 w-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                    <span>Biometria Homologada</span>
+                </span>
+                <span class="text-xs text-slate-500" id="current-date">--/--/----</span>
+            </div>
+        </header>
+
+        <!-- CONTAINER DAS TELAS -->
+        <div class="p-6 overflow-y-auto flex-1">
+
+            <!-- ================= TELA 1: DASHBOARD ================= -->
+            <section id="view-dashboard" class="space-y-6">
+                <!-- Grid de Métricas Principais -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="bg-slate-950/50 border border-slate-800 p-5 rounded-xl flex items-center space-x-4 shadow-sm">
+                        <div class="h-12 w-12 bg-indigo-950 text-indigo-400 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">EPIs Entregues</p>
+                            <h3 class="text-2xl font-bold text-white mt-1" id="dash-epi-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/50 border border-slate-800 p-5 rounded-xl flex items-center space-x-4 shadow-sm">
+                        <div class="h-12 w-12 bg-amber-950 text-amber-400 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-file-shield"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">APRs Vigentes</p>
+                            <h3 class="text-2xl font-bold text-white mt-1" id="dash-apr-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/50 border border-slate-800 p-5 rounded-xl flex items-center space-x-4 shadow-sm">
+                        <div class="h-12 w-12 bg-emerald-950 text-emerald-400 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">PTs Autorizadas</p>
+                            <h3 class="text-2xl font-bold text-white mt-1" id="dash-pt-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/50 border border-slate-800 p-5 rounded-xl flex items-center space-x-4 shadow-sm">
+                        <div class="h-12 w-12 bg-red-950 text-red-400 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-ban"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Máquinas Bloqueadas</p>
+                            <h3 class="text-2xl font-bold text-white mt-1 text-red-400" id="dash-blocked-count">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Feed de Alertas Críticos -->
+                    <div class="lg:col-span-2 bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        <h4 class="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2"></i>
+                            Alertas de Segurança & Auditoria em Tempo Real
+                        </h4>
+                        <div class="space-y-3" id="dash-alerts-list">
+                            <!-- Inserido dinamicamente via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Controle de Inventário Rápido -->
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        <h4 class="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center">
+                            <i class="fa-solid fa-box-open text-indigo-500 mr-2"></i>
+                            Estoque de EPI Crítico
+                        </h4>
+                        <div class="space-y-4" id="dash-inventory-list">
+                            <!-- Inserido dinamicamente via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TELA 2: ENTREGA DE EPI ================= -->
+            <section id="view-epi" class="space-y-6 hidden">
+                <!-- Banner de Modo de Edição -->
+                <div id="epi-edit-banner" class="hidden bg-amber-950/60 border border-amber-800 p-4 rounded-lg flex justify-between items-center text-sm text-amber-200">
+                    <span class="flex items-center"><i class="fa-solid fa-pen-to-square mr-2"></i> Você está editando o Registro de Entrega de EPI <strong id="epi-editing-id-text" class="ml-1"></strong>.</span>
+                    <button onclick="cancelEdit('epi')" class="px-3 py-1 bg-amber-800/40 hover:bg-amber-800 text-white rounded text-xs transition animate-pulse">Cancelar</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Formulário de Entrega -->
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center">
+                            <i class="fa-solid fa-user-plus text-emerald-500 mr-2"></i>
+                            <span id="epi-form-title">Nova Entrega de EPI</span>
+                        </h3>
+                        
+                        <form id="form-epi" class="space-y-4" onsubmit="handleEPISubmit(event)">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Colaborador Beneficiário</label>
+                                <select id="epi-colaborador" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="">Selecione...</option>
+                                    <option value="Roberto Alencar">Roberto Alencar (Operador de Torno)</option>
+                                    <option value="Jonas de Souza">Jonas de Souza (Soldador)</option>
+                                    <option value="Carla Mendes">Carla Mendes (Encarregada de Caldeiraria)</option>
+                                    <option value="Eduardo Antunes">Eduardo Antunes (Técnico de Manutenção)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-2">EPIs Solicitados para Entrega</label>
+                                <div class="space-y-2 max-h-48 overflow-y-auto border border-slate-800/60 rounded-lg p-3 bg-slate-900/40" id="epi-selection-container">
+                                    <!-- Carregado do estoque em JS -->
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Motivo do Fornecimento</label>
+                                <select id="epi-motivo" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="Desgaste Natural">Desgaste Natural pelo Uso</option>
+                                    <option value="Admissional">Admissional / Nova Contratação</option>
+                                    <option value="Extravio">Extravio / Perda Justificada</option>
+                                    <option value="Dano Acidental">Dano Acidental em Serviço</option>
+                                </select>
+                            </div>
+
+                            <!-- Área Biométrica -->
+                            <div class="border border-slate-800 rounded-xl p-4 bg-slate-950/80">
+                                <span class="text-xs text-slate-400 font-bold block mb-2 uppercase tracking-wide">Chancela de Autoria</span>
+                                <button type="button" onclick="triggerBiometrics('epi')" class="w-full flex items-center justify-center space-x-3 bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 p-3 rounded-lg hover:bg-emerald-900/40 transition-all font-semibold text-sm">
+                                    <i class="fa-solid fa-fingerprint text-lg animate-pulse"></i>
+                                    <span id="epi-biometric-btn-text">Assinar via Biometria</span>
+                                </button>
+                                <div class="hidden mt-3 text-xs flex items-center space-x-2 text-emerald-400" id="epi-biometric-success">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Assinatura Digital Capturada com Sucesso!</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition-all shadow-lg shadow-emerald-950/40" id="epi-submit-btn">
+                                Emitir Ficha Legal de EPI
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Tabela de Histórico -->
+                    <div class="lg:col-span-2 bg-slate-950/40 border border-slate-800 rounded-xl p-6 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-white font-bold text-sm tracking-wider uppercase">Histórico Geral de Entregas</h3>
+                            <div class="relative w-48">
+                                <input type="text" oninput="filterTable('table-epi', this.value)" placeholder="Pesquisar..." class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left border-collapse" id="table-epi">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Cód</th>
+                                        <th class="py-3 px-4">Colaborador</th>
+                                        <th class="py-3 px-4">Itens</th>
+                                        <th class="py-3 px-4">Data/Hora</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-xs text-slate-300" id="epi-history-body">
+                                    <!-- Inserido dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TELA 3: MODULO APR ================= -->
+            <section id="view-apr" class="space-y-6 hidden">
+                <!-- Banner de Modo de Edição -->
+                <div id="apr-edit-banner" class="hidden bg-amber-950/60 border border-amber-800 p-4 rounded-lg flex justify-between items-center text-sm text-amber-200">
+                    <span class="flex items-center"><i class="fa-solid fa-pen-to-square mr-2"></i> Você está editando a APR <strong id="apr-editing-id-text" class="ml-1"></strong>.</span>
+                    <button onclick="cancelEdit('apr')" class="px-3 py-1 bg-amber-800/40 hover:bg-amber-800 text-white rounded text-xs transition">Cancelar</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Formulário APR -->
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center">
+                            <i class="fa-solid fa-file-circle-plus text-emerald-500 mr-2"></i>
+                            <span id="apr-form-title">Estruturar Nova APR</span>
+                        </h3>
+                        <form id="form-apr" class="space-y-4" onsubmit="handleAPRSubmit(event)">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Título da Atividade Operacional</label>
+                                <input type="text" id="apr-atividade" placeholder="Ex: Soldagem em Tubulações Aéreas" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Setor / Setor Físico</label>
+                                <select id="apr-setor" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="Usinagem de Grande Porte">Usinagem de Grande Porte</option>
+                                    <option value="Setor de Soldagem & Caldeiraria">Setor de Soldagem & Caldeiraria</option>
+                                    <option value="Subestação Elétrica">Subestação Elétrica Geral</option>
+                                    <option value="Armazém Logístico">Armazém Logístico de Insumos</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-2">Identificação de Riscos Críticos</label>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                                        <input type="checkbox" value="Choque Elétrico" class="apr-risco accent-emerald-500">
+                                        <span>Choque Elétrico</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                                        <input type="checkbox" value="Queda de Altura" class="apr-risco accent-emerald-500">
+                                        <span>Queda de Altura</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                                        <input type="checkbox" value="Queimaduras" class="apr-risco accent-emerald-500">
+                                        <span>Queimaduras</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                                        <input type="checkbox" value="Ruído Excessivo" class="apr-risco accent-emerald-500">
+                                        <span>Ruído Elevado</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                                        <input type="checkbox" value="Inalação de Fumos" class="apr-risco accent-emerald-500">
+                                        <span>Inalação Fumos</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded p-2 cursor-pointer hover:border-emerald-500 transition">
+                                        <input type="checkbox" value="Esmagamento" class="apr-risco accent-emerald-500">
+                                        <span>Esmagamento</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Medidas de Controle Implementadas</label>
+                                <textarea id="apr-controles" required rows="3" placeholder="Ex: Desenergização total, instalação de barreiras físicas e uso de máscara de proteção específica." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Responsável pela Análise</label>
+                                <input type="text" id="apr-responsavel" required placeholder="Nome do Técnico ou Engenheiro" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <!-- Área Biométrica -->
+                            <div class="border border-slate-800 rounded-xl p-4 bg-slate-950/80">
+                                <span class="text-xs text-slate-400 font-bold block mb-2 uppercase tracking-wide">Assinatura Biométrica do Responsável</span>
+                                <button type="button" onclick="triggerBiometrics('apr')" class="w-full flex items-center justify-center space-x-3 bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 p-3 rounded-lg hover:bg-emerald-900/40 transition-all font-semibold text-sm">
+                                    <i class="fa-solid fa-fingerprint text-lg animate-pulse"></i>
+                                    <span id="apr-biometric-btn-text">Autenticar via Biometria</span>
+                                </button>
+                                <div class="hidden mt-3 text-xs flex items-center space-x-2 text-emerald-400" id="apr-biometric-success">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Assinatura Digital Validada!</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition-all" id="apr-submit-btn">
+                                Homologar APR
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Tabela Histórico APR -->
+                    <div class="lg:col-span-2 bg-slate-950/40 border border-slate-800 rounded-xl p-6 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-white font-bold text-sm tracking-wider uppercase">APRs Cadastradas no Sistema</h3>
+                            <div class="relative w-48">
+                                <input type="text" oninput="filterTable('table-apr', this.value)" placeholder="Pesquisar..." class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left border-collapse" id="table-apr">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Cód</th>
+                                        <th class="py-3 px-4">Atividade</th>
+                                        <th class="py-3 px-4">Riscos Identificados</th>
+                                        <th class="py-3 px-4">Responsável</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-xs text-slate-300" id="apr-history-body">
+                                    <!-- Dinâmico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TELA 4: PERMISSAO DE TRABALHO ================= -->
+            <section id="view-pt" class="space-y-6 hidden">
+                <!-- Banner de Modo de Edição -->
+                <div id="pt-edit-banner" class="hidden bg-amber-950/60 border border-amber-800 p-4 rounded-lg flex justify-between items-center text-sm text-amber-200">
+                    <span class="flex items-center"><i class="fa-solid fa-pen-to-square mr-2"></i> Você está editando a Permissão de Trabalho <strong id="pt-editing-id-text" class="ml-1"></strong>.</span>
+                    <button onclick="cancelEdit('pt')" class="px-3 py-1 bg-amber-800/40 hover:bg-amber-800 text-white rounded text-xs transition">Cancelar</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Formulário de Emissão de PT -->
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center">
+                            <i class="fa-solid fa-file-signature text-emerald-500 mr-2"></i>
+                            <span id="pt-form-title">Liberar Permissão de Trabalho (PT)</span>
+                        </h3>
+                        <form id="form-pt" class="space-y-4" onsubmit="handlePTSubmit(event)">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Local Exato da Atividade</label>
+                                <input type="text" id="pt-local" placeholder="Ex: Chaminé Caldeira 3 - Área Externa" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Classificação do Trabalho Crítico</label>
+                                <select id="pt-categoria" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="Trabalho em Altura (NR-35)">Trabalho em Altura (NR-35)</option>
+                                    <option value="Espaço Confinado (NR-33)">Espaço Confinado (NR-33)</option>
+                                    <option value="Atividade com Eletricidade (NR-10)">Trabalho Quente / Soldagem</option>
+                                    <option value="Áreas Classificadas">Trabalho sob Pressão / Escavações</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Executante Habilitado</label>
+                                <input type="text" id="pt-executante" placeholder="Ex: Roberto Alencar" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Engenheiro / Supervisor Responsável</label>
+                                <input type="text" id="pt-autorizador" placeholder="Ex: Adriano Silva" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-2">Checklist Imprescindível para Liberação</label>
+                                <div class="space-y-2 text-xs">
+                                    <label class="flex items-center space-x-2 text-slate-300">
+                                        <input type="checkbox" id="pt-chk-1" required class="accent-emerald-500">
+                                        <span>Área limpa, isolada e adequadamente sinalizada?</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 text-slate-300">
+                                        <input type="checkbox" id="pt-chk-2" required class="accent-emerald-500">
+                                        <span>Equipamentos de Resgate estão prontificados no local?</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 text-slate-300">
+                                        <input type="checkbox" id="pt-chk-3" required class="accent-emerald-500">
+                                        <span>Os executantes portam e conhecem a respectiva APR?</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Área Biométrica -->
+                            <div class="border border-slate-800 rounded-xl p-4 bg-slate-950/80">
+                                <span class="text-xs text-slate-400 font-bold block mb-2 uppercase tracking-wide">Assinatura de Liberação por Biometria</span>
+                                <button type="button" onclick="triggerBiometrics('pt')" class="w-full flex items-center justify-center space-x-3 bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 p-3 rounded-lg hover:bg-emerald-900/40 transition-all font-semibold text-sm">
+                                    <i class="fa-solid fa-fingerprint text-lg animate-pulse"></i>
+                                    <span id="pt-biometric-btn-text">Liberar via Biometria</span>
+                                </button>
+                                <div class="hidden mt-3 text-xs flex items-center space-x-2 text-emerald-400" id="pt-biometric-success">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Validação do Supervisor Concluída!</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition-all" id="pt-submit-btn">
+                                Gerar e Assinar PT
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Tabela Histórico PT -->
+                    <div class="lg:col-span-2 bg-slate-950/40 border border-slate-800 rounded-xl p-6 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-white font-bold text-sm tracking-wider uppercase">Histórico de Permissões Emitidas</h3>
+                            <div class="relative w-48">
+                                <input type="text" oninput="filterTable('table-pt', this.value)" placeholder="Pesquisar..." class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left border-collapse" id="table-pt">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Cód</th>
+                                        <th class="py-3 px-4">Local</th>
+                                        <th class="py-3 px-4">Trabalho Crítico</th>
+                                        <th class="py-3 px-4">Executante</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-xs text-slate-300" id="pt-history-body">
+                                    <!-- Dinâmico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TELA 5: CHECKLIST DE MAQUINAS ================= -->
+            <section id="view-checklist" class="space-y-6 hidden">
+                <!-- Banner de Modo de Edição -->
+                <div id="checklist-edit-banner" class="hidden bg-amber-950/60 border border-amber-800 p-4 rounded-lg flex justify-between items-center text-sm text-amber-200">
+                    <span class="flex items-center"><i class="fa-solid fa-pen-to-square mr-2"></i> Você está editando o Checklist <strong id="checklist-editing-id-text" class="ml-1"></strong>.</span>
+                    <button onclick="cancelEdit('checklist')" class="px-3 py-1 bg-amber-800/40 hover:bg-amber-800 text-white rounded text-xs transition">Cancelar</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Formulário de Checklist -->
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center">
+                            <i class="fa-solid fa-square-poll-vertical text-emerald-500 mr-2"></i>
+                            <span id="checklist-form-title">Inspeção Pré-Uso de Maquinários</span>
+                        </h3>
+                        <form id="form-checklist" class="space-y-4" onsubmit="handleChecklistSubmit(event)">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Máquina / Equipamento Avaliado</label>
+                                <select id="chk-maquina" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="Empilhadeira Hyster H50">Empilhadeira Hyster H50 (Logística)</option>
+                                    <option value="Ponte Rolante Demag 10t">Ponte Rolante Demag 10t (Caldeiraria)</option>
+                                    <option value="Torno CNC Romi D800">Torno CNC Romi D800 (Usinagem)</option>
+                                    <option value="Prensa Hidráulica 100T">Prensa Hidráulica Newton 100T</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Operador Responsável</label>
+                                <input type="text" id="chk-operador" placeholder="Ex: Jonas de Souza" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <!-- Itens de Inspeção -->
+                            <div class="space-y-3">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Itens Críticos (NR-12)</label>
+                                
+                                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
+                                    <span class="text-xs text-slate-300 flex-1">1. Sistema de Parada de Emergência (Botão de Soco)</span>
+                                    <select id="chk-item1" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                        <option value="C">Conforme</option>
+                                        <option value="NC">Não Conforme</option>
+                                    </select>
+                                </div>
+
+                                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
+                                    <span class="text-xs text-slate-300 flex-1">2. Sensores de Proteção Físicos de Operação</span>
+                                    <select id="chk-item2" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                        <option value="C">Conforme</option>
+                                        <option value="NC">Não Conforme</option>
+                                    </select>
+                                </div>
+
+                                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between space-x-4">
+                                    <span class="text-xs text-slate-300 flex-1">3. Inexistência de Vazamentos de Óleo e Fluidos</span>
+                                    <select id="chk-item3" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                        <option value="C">Conforme</option>
+                                        <option value="NC">Não Conforme</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Área Biométrica -->
+                            <div class="border border-slate-800 rounded-xl p-4 bg-slate-950/80">
+                                <span class="text-xs text-slate-400 font-bold block mb-2 uppercase tracking-wide">Chancela Biométrica do Operador</span>
+                                <button type="button" onclick="triggerBiometrics('checklist')" class="w-full flex items-center justify-center space-x-3 bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 p-3 rounded-lg hover:bg-emerald-900/40 transition-all font-semibold text-sm">
+                                    <i class="fa-solid fa-fingerprint text-lg animate-pulse"></i>
+                                    <span id="checklist-biometric-btn-text">Assinar via Biometria</span>
+                                </button>
+                                <div class="hidden mt-3 text-xs flex items-center space-x-2 text-emerald-400" id="checklist-biometric-success">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Assinatura Coletada com Sucesso!</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition-all" id="checklist-submit-btn">
+                                Finalizar e Enviar Checklist
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Tabela Histórico Checklist -->
+                    <div class="lg:col-span-2 bg-slate-950/40 border border-slate-800 rounded-xl p-6 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-white font-bold text-sm tracking-wider uppercase">Inspeções Realizadas</h3>
+                            <div class="relative w-48">
+                                <input type="text" oninput="filterTable('table-checklist', this.value)" placeholder="Pesquisar..." class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left border-collapse" id="table-checklist">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Cód</th>
+                                        <th class="py-3 px-4">Equipamento</th>
+                                        <th class="py-3 px-4">Operador</th>
+                                        <th class="py-3 px-4">Status</th>
+                                        <th class="py-3 px-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-xs text-slate-300" id="checklist-history-body">
+                                    <!-- Dinâmico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ================= MODAL BIOMETRIA SIMULADA ================= -->
+    <div id="biometricsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4 shadow-2xl">
+            <h4 class="text-white font-extrabold text-lg flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-fingerprint text-emerald-500 animate-pulse text-2xl"></i>
+                <span>Sensor Biométrico Virtual</span>
+            </h4>
+            <p class="text-xs text-slate-400">Posicione o dedo do operador no sensor abaixo ou clique na área para capturar.</p>
+            
+            <!-- Sensor de toque visual -->
+            <button type="button" onclick="executeBiometricCapture()" class="mx-auto w-32 h-32 bg-slate-950 border-2 border-slate-800 hover:border-emerald-500 rounded-full flex items-center justify-center text-slate-600 transition-all hover:text-emerald-400 group relative">
+                <!-- Ondas concêntricas de animação quando ativo -->
+                <div id="bio-waves" class="absolute inset-0 rounded-full border border-emerald-500/20 scale-100 group-hover:animate-ping"></div>
+                <i class="fa-solid fa-fingerprint text-5xl transition group-hover:scale-110"></i>
+            </button>
+
+            <!-- Barra de Progresso simulada -->
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden hidden" id="bio-progress-bar">
+                <div class="bg-emerald-500 h-1.5 rounded-full w-0" id="bio-progress-fill"></div>
+            </div>
+
+            <p class="text-xs font-semibold" id="bio-status-text">Aguardando contato físico...</p>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeBiometricsModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-lg text-xs transition">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL DE FICHA / RECIBO / AUDITORIA ================= -->
+    <div id="receiptModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-40 p-4 hidden">
+        <div class="bg-white text-slate-900 w-full max-w-3xl rounded-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col justify-between">
+            
+            <div id="receiptModalContent" class="space-y-6 text-slate-900">
+                <!-- Renderizado dinamicamente em JS de acordo com a ficha -->
+            </div>
+
+            <!-- Botões Inferiores -->
+            <div class="flex space-x-3 pt-6 border-t border-slate-200 mt-6 no-print justify-end">
+                <button onclick="closeReceiptModal()" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg text-xs transition">
+                    Fechar Visualização
+                </button>
+                <button onclick="window.print()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs transition flex items-center space-x-2">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Imprimir Documento / Salvar PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTAINER DE TOASTS -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- SCRIPT DE OPERAÇÕES DO SISTEMA -->
+    <script>
+        const MOCK_INVENTORY = [
+            { id: 'epi_1', nome: 'Protetor Auditivo Concha (3M)', estoque: 48, critico: 15, ca: '14235' },
+            { id: 'epi_2', nome: 'Luva de Raspa para Soldagem', estoque: 9, critico: 10, ca: '28345' },
+            { id: 'epi_3', nome: 'Óculos de Segurança Fumê', estoque: 45, critico: 12, ca: '39281' },
+            { id: 'epi_4', nome: 'Máscara Respiratória PFF2', estoque: 14, critico: 20, ca: '42344' },
+            { id: 'epi_5', nome: 'Cinto de Segurança Tipo Paraquedista', estoque: 5, critico: 6, ca: '18392' }
+        ];
+
+        // Carregar estado persistido ou inicializar
+        let state = JSON.parse(localStorage.getItem('sst_state')) || {
+            entregasEPI: [],
+            aprs: [],
+            pts: [],
+            checklists: [],
+            inventory: MOCK_INVENTORY
+        };
+
+        // Estado do editor
+        let activeTab = 'dashboard';
+        let currentBiometricTarget = null;
+        let biometricSignatures = {
+            epi: false,
+            apr: false,
+            pt: false,
+            checklist: false
+        };
+
+        // Estado de edição
+        let editingState = {
+            epi: null,
+            apr: null,
+            pt: null,
+            checklist: null
+        };
+
+        // Sintetizador de Áudio para Feedbacks Sonoros
+        function playBeep(frequency = 800, duration = 0.1) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {
+                console.log('AudioContext não disponível no navegador.');
+            }
+        }
+
+        // --- SISTEMA DE TOAST NOTIFICATIONS ---
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-xl shadow-xl border flex items-center space-x-3 text-xs font-semibold transition-all duration-300 transform translate-x-12 opacity-0 max-w-xs pointer-events-auto ${
+                type === 'success' 
+                ? 'bg-emerald-950 border-emerald-800 text-emerald-400' 
+                : type === 'warning'
+                ? 'bg-amber-950 border-amber-800 text-amber-300'
+                : 'bg-red-950 border-red-800 text-red-400'
+            }`;
+
+            const icon = type === 'success' ? 'circle-check' : type === 'warning' ? 'triangle-exclamation' : 'circle-xmark';
+            toast.innerHTML = `<i class="fa-solid fa-${icon} text-base shrink-0"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-x-12', 'opacity-0');
+            }, 50);
+
+            if(type === 'success') playBeep(900, 0.08);
+            if(type === 'warning' || type === 'error') playBeep(400, 0.25);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function saveState() {
+            localStorage.setItem('sst_state', JSON.stringify(state));
+            updateDashboard();
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const format = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('current-date').innerText = format;
+        }
+
+        // --- ENTRADA DO SISTEMA ---
+        window.onload = function() {
+            updateDate();
+            renderEPIOptions();
+            updateDashboard();
+            
+            // Tratamento do estado de login
+            if (localStorage.getItem('sst_logado') === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+            }
+            switchTab('dashboard');
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-900 hover:text-white";
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-white bg-slate-900 border-l-4 border-emerald-500";
+
+            const titleMap = {
+                dashboard: 'Painel de Controle de Segurança (SST)',
+                epi: 'Gestão Legal de Fornecimento de EPIs (NR-06)',
+                apr: 'Análise Preliminar de Risco (NR-01)',
+                pt: 'Permissão de Trabalho para Atividades Críticas (PT)',
+                checklist: 'Inspeções e Checklists de Segurança (NR-12)'
+            };
+            document.getElementById('page-title').innerText = titleMap[tabId] || 'Portal de Segurança';
+
+            if(tabId === 'epi') renderEPIHistory();
+            if(tabId === 'apr') renderAPRHistory();
+            if(tabId === 'pt') renderPTHistory();
+            if(tabId === 'checklist') renderChecklistHistory();
+        }
+
+        function renderEPIOptions() {
+            const container = document.getElementById('epi-selection-container');
+            container.innerHTML = state.inventory.map(item => `
+                <label class="flex items-center justify-between p-2 rounded hover:bg-slate-900/60 transition cursor-pointer text-xs">
+                    <span class="flex items-center space-x-2">
+                        <input type="checkbox" value="${item.id}" class="epi-checkbox accent-emerald-500">
+                        <span>${item.nome} <span class="text-slate-500 text-[10px]">(C.A: ${item.ca})</span></span>
+                    </span>
+                    <span class="text-[10px] px-2 py-0.5 rounded ${item.estoque <= item.critico ? 'bg-red-950 text-red-400' : 'bg-slate-800 text-slate-400'}">Estoque: ${item.estoque}</span>
+                </label>
+            `).join('');
+        }
+
+        // --- AUTENTICAÇÃO ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-password').value;
+            const errorMsg = document.getElementById('login-error');
+            
+            if (user === 'admin' && pass === 'sstsecure2026') {
+                document.getElementById('login-screen').classList.add('hidden');
+                errorMsg.classList.add('hidden');
+                localStorage.setItem('sst_logado', 'true');
+                showNotification('Sessão autenticada com sucesso!');
+            } else {
+                errorMsg.classList.remove('hidden');
+                playBeep(300, 0.4);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('sst_logado');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-user').value = '';
+            document.getElementById('login-password').value = '';
+            showNotification('Sessão encerrada.', 'warning');
+        }
+
+        // --- BIOMETRIA ---
+        function triggerBiometrics(targetModule) {
+            currentBiometricTarget = targetModule;
+            const modal = document.getElementById('biometricsModal');
+            modal.classList.remove('hidden');
+            document.getElementById('bio-status-text').innerText = 'Aguardando toque no sensor óptico...';
+            document.getElementById('bio-progress-bar').classList.add('hidden');
+            document.getElementById('bio-progress-fill').style.width = '0%';
+        }
+
+        function closeBiometricsModal() {
+            document.getElementById('biometricsModal').classList.add('hidden');
+        }
+
+        function executeBiometricCapture() {
+            playBeep(600, 0.1);
+            document.getElementById('bio-status-text').innerText = 'Lendo impressões papilares... Mantenha pressionado.';
+            const bar = document.getElementById('bio-progress-bar');
+            const fill = document.getElementById('bio-progress-fill');
+            bar.classList.remove('hidden');
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                fill.style.width = `${progress}%`;
+                playBeep(700 + progress, 0.05);
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    biometricSignatures[currentBiometricTarget] = true;
+                    document.getElementById('bio-status-text').innerText = 'Biometria coletada e assinada!';
+                    playBeep(1200, 0.25);
+                    
+                    document.getElementById(`${currentBiometricTarget}-biometric-success`).classList.remove('hidden');
+                    document.getElementById(`${currentBiometricTarget}-biometric-btn-text`).innerText = 'Re-assinar com Biometria';
+
+                    setTimeout(() => {
+                        closeBiometricsModal();
+                    }, 800);
+                }
+            }, 150);
+        }
+
+        // --- DASHBOARD RENDERS ---
+        function updateDashboard() {
+            document.getElementById('dash-epi-count').innerText = state.entregasEPI.length;
+            document.getElementById('dash-apr-count').innerText = state.aprs.length;
+            document.getElementById('dash-pt-count').innerText = state.pts.length;
+
+            const statusMaquinas = {};
+            state.checklists.forEach(chk => {
+                statusMaquinas[chk.maquina] = chk.status;
+            });
+            const blockedCount = Object.values(statusMaquinas).filter(s => s === 'Reprovado').length;
+            document.getElementById('dash-blocked-count').innerText = blockedCount;
+
+            const inventoryList = document.getElementById('dash-inventory-list');
+            inventoryList.innerHTML = '';
+            state.inventory.forEach(item => {
+                const percent = Math.min(100, Math.round((item.estoque / (item.critico * 2.5)) * 100));
+                const barColor = item.estoque <= item.critico ? 'bg-red-500' : 'bg-emerald-500';
+                inventoryList.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-medium text-slate-300 truncate w-32">${item.nome}</span>
+                            <span class="font-bold ${item.estoque <= item.critico ? 'text-red-400' : 'text-emerald-400'}">${item.estoque} un</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                            <div class="${barColor} h-1.5 rounded-full" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const feed = document.getElementById('dash-alerts-list');
+            feed.innerHTML = '';
+            const logs = [];
+
+            state.inventory.forEach(item => {
+                if (item.estoque <= item.critico) {
+                    logs.push({
+                        type: 'danger',
+                        title: `Estoque Crítico de EPI`,
+                        desc: `O item "${item.nome}" atingiu apenas ${item.estoque} unidades no almoxarifado. Providenciar reposição IMEDIATA (C.A. ${item.ca}).`,
+                        icon: 'fa-box-archive',
+                        time: 'Ação Recomendada'
+                    });
+                }
+            });
+
+            state.checklists.forEach(chk => {
+                if (chk.status === 'Reprovado') {
+                    logs.push({
+                        type: 'warning',
+                        title: `MÁQUINA BLOQUEADA POR NÃO-CONFORMIDADE`,
+                        desc: `A máquina "${chk.maquina}" teve o checklist diário reprovado pelo operador ${chk.operador}. Bloqueio físico ativado conforme NR-12.`,
+                        icon: 'fa-triangle-exclamation',
+                        time: chk.data
+                    });
+                }
+            });
+
+            if(logs.length === 0) {
+                feed.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-10 text-slate-500">
+                        <i class="fa-solid fa-square-check text-4xl text-emerald-500/20 mb-3"></i>
+                        <p class="text-xs">Nenhum evento crítico ou não-conformidade em aberto.</p>
+                        <p class="text-[10px] text-slate-600 mt-1">Conformidade das normas NR-1, NR-6 e NR-12 com 100% de cobertura.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            logs.forEach(log => {
+                const border = log.type === 'danger' ? 'border-red-900/60 bg-red-950/20 text-red-300' : 'border-amber-900/60 bg-amber-950/20 text-amber-300';
+                const badge = log.type === 'danger' ? 'bg-red-900/50 text-red-200' : 'bg-amber-900/50 text-amber-200';
+                feed.innerHTML += `
+                    <div class="flex items-start space-x-3 p-3.5 rounded-xl border ${border}">
+                        <div class="p-2 rounded-lg ${badge} shrink-0">
+                            <i class="fa-solid ${log.icon} text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <h5 class="text-xs font-bold text-white truncate">${log.title}</h5>
+                                <span class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">${log.time}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">${log.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterTable(tableId, query) {
+            const table = document.getElementById(tableId);
+            const trs = table.getElementsByTagName('tr');
+            const q = query.toLowerCase();
+
+            for (let i = 1; i < trs.length; i++) {
+                let show = false;
+                const tds = trs[i].getElementsByTagName('td');
+                for (let j = 0; j < tds.length; j++) {
+                    if (tds[j].innerText.toLowerCase().includes(q)) {
+                        show = true;
+                        break;
+                    }
+                }
+                trs[i].style.display = show ? "" : "none";
+            }
+        }
+
+        // --- SISTEMA DE EDIÇÃO: CANCELAR ---
+        function cancelEdit(module) {
+            editingState[module] = null;
+            document.getElementById(`${module}-edit-banner`).classList.add('hidden');
+            document.getElementById(`${module}-form-title`).innerText = getFormTitle(module, false);
+            document.getElementById(`${module}-submit-btn`).innerText = getSubmitBtnText(module, false);
+            
+            biometricSignatures[module] = false;
+            document.getElementById(`${module}-biometric-success`).classList.add('hidden');
+            document.getElementById(`${module}-biometric-btn-text`).innerText = 'Assinar via Biometria';
+
+            document.getElementById(`form-${module}`).reset();
+            showNotification('Edição cancelada.', 'warning');
+        }
+
+        function getFormTitle(module, isEdit) {
+            const titles = {
+                epi: isEdit ? 'Editar Registro de EPI' : 'Nova Entrega de EPI',
+                apr: isEdit ? 'Editar Análise de Risco (APR)' : 'Estruturar Nova APR',
+                pt: isEdit ? 'Editar Permissão de Trabalho' : 'Liberar Permissão de Trabalho (PT)',
+                checklist: isEdit ? 'Editar Inspeção Pré-Uso' : 'Inspeção Pré-Uso de Maquinários'
+            };
+            return titles[module];
+        }
+
+        function getSubmitBtnText(module, isEdit) {
+            const btnTexts = {
+                epi: isEdit ? 'Salvar Alterações de EPI' : 'Emitir Ficha Legal de EPI',
+                apr: isEdit ? 'Atualizar APR Homologada' : 'Homologar APR',
+                pt: isEdit ? 'Atualizar e Re-assinar PT' : 'Gerar e Assinar PT',
+                checklist: isEdit ? 'Atualizar Inspeção' : 'Finalizar e Enviar Checklist'
+            };
+            return btnTexts[module];
+        }
+
+        // --- EPIs ---
+        function renderEPIHistory() {
+            const body = document.getElementById('epi-history-body');
+            body.innerHTML = '';
+
+            if (state.entregasEPI.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">Nenhum registro de EPI localizado.</td></tr>`;
+                return;
+            }
+
+            state.entregasEPI.forEach(reg => {
+                const nomesEpi = reg.epis.map(e => e.nome).join(', ');
+                body.innerHTML += `
+                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                        <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
+                        <td class="py-3 px-4 text-white font-medium">${reg.colaborador}</td>
+                        <td class="py-3 px-4 text-slate-400 max-w-[200px] truncate">${nomesEpi}</td>
+                        <td class="py-3 px-4 text-slate-500">${reg.data}</td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="editEPI('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar Registro">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="openReceiptModal('epi', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Ficha">
+                                <i class="fa-solid fa-file-invoice"></i> Ver Ficha
+                            </button>
+                            <button onclick="deleteRecord('entregasEPI', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleEPISubmit(event) {
+            event.preventDefault();
+            const colaborador = document.getElementById('epi-colaborador').value;
+            const motivo = document.getElementById('epi-motivo').value;
+
+            const checkedBoxes = document.querySelectorAll('.epi-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                showNotification('Por favor, selecione pelo menos um EPI para entrega.', 'warning');
+                return;
+            }
+
+            if (!biometricSignatures.epi) {
+                showNotification('É obrigatório capturar a assinatura biométrica do operador.', 'error');
+                return;
+            }
+
+            const selectedEpis = [];
+            checkedBoxes.forEach(box => {
+                const item = state.inventory.find(i => i.id === box.value);
+                if (item) selectedEpis.push(item);
+            });
+
+            const isEditing = editingState.epi !== null;
+
+            if (isEditing) {
+                const recordId = editingState.epi;
+                const index = state.entregasEPI.findIndex(r => r.id === recordId);
+                
+                if (index !== -1) {
+                    const oldRecord = state.entregasEPI[index];
+                    
+                    oldRecord.epis.forEach(oldEpi => {
+                        const invItem = state.inventory.find(inv => inv.id === oldEpi.id);
+                        if (invItem) invItem.estoque += 1;
+                    });
+
+                    selectedEpis.forEach(newEpi => {
+                        const invItem = state.inventory.find(inv => inv.id === newEpi.id);
+                        if (invItem && invItem.estoque > 0) invItem.estoque -= 1;
+                    });
+
+                    state.entregasEPI[index] = {
+                        id: recordId,
+                        colaborador,
+                        motivo,
+                        epis: selectedEpis,
+                        data: new Date().toLocaleString('pt-BR'),
+                        fingerprintHash: `BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                    };
+
+                    showNotification('Registro de Entrega de EPI atualizado com sucesso!');
+                    cancelEdit('epi');
+                }
+            } else {
+                const novoId = `EPI-${Math.floor(1000 + Math.random() * 9000)}`;
+                
+                selectedEpis.forEach(epi => {
+                    const invItem = state.inventory.find(inv => inv.id === epi.id);
+                    if (invItem && invItem.estoque > 0) invItem.estoque -= 1;
+                });
+
+                state.entregasEPI.push({
+                    id: novoId,
+                    colaborador,
+                    motivo,
+                    epis: selectedEpis,
+                    data: new Date().toLocaleString('pt-BR'),
+                    fingerprintHash: `BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                });
+
+                showNotification('Ficha de Fornecimento de EPI homologada com biometria!');
+            }
+
+            document.getElementById('form-epi').reset();
+            biometricSignatures.epi = false;
+            document.getElementById('epi-biometric-success').classList.add('hidden');
+            document.getElementById('epi-biometric-btn-text').innerText = 'Assinar via Biometria';
+
+            saveState();
+            renderEPIOptions();
+            renderEPIHistory();
+        }
+
+        function editEPI(id) {
+            const reg = state.entregasEPI.find(r => r.id === id);
+            if (!reg) return;
+
+            editingState.epi = id;
+            document.getElementById('epi-editing-id-text').innerText = `#${id}`;
+            document.getElementById('epi-edit-banner').classList.remove('hidden');
+            document.getElementById('epi-form-title').innerText = getFormTitle('epi', true);
+            document.getElementById('epi-submit-btn').innerText = getSubmitBtnText('epi', true);
+
+            document.getElementById('epi-colaborador').value = reg.colaborador;
+            document.getElementById('epi-motivo').value = reg.motivo;
+
+            document.querySelectorAll('.epi-checkbox').forEach(box => {
+                box.checked = reg.epis.some(e => e.id === box.value);
+            });
+
+            biometricSignatures.epi = false;
+            document.getElementById('epi-biometric-success').classList.add('hidden');
+            document.getElementById('epi-biometric-btn-text').innerText = 'Re-assinar para Homologar';
+
+            document.getElementById('form-epi').scrollIntoView({ behavior: 'smooth' });
+            showNotification('Modo de edição ativo para EPI.', 'warning');
+        }
+
+        // --- APR ---
+        function renderAPRHistory() {
+            const body = document.getElementById('apr-history-body');
+            body.innerHTML = '';
+
+            if (state.aprs.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">Nenhuma APR registrada.</td></tr>`;
+                return;
+            }
+
+            state.aprs.forEach(reg => {
+                body.innerHTML += `
+                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                        <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
+                        <td class="py-3 px-4 text-white font-medium">${reg.atividade}</td>
+                        <td class="py-3 px-4 text-slate-400 truncate max-w-[150px]">${reg.riscos.join(', ')}</td>
+                        <td class="py-3 px-4 text-slate-400">${reg.responsavel}</td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="editAPR('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar APR">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="openReceiptModal('apr', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Documento">
+                                <i class="fa-solid fa-file-invoice"></i> Ver APR
+                            </button>
+                            <button onclick="deleteRecord('aprs', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleAPRSubmit(event) {
+            event.preventDefault();
+            const atividade = document.getElementById('apr-atividade').value;
+            const setor = document.getElementById('apr-setor').value;
+            const controles = document.getElementById('apr-controles').value;
+            const responsavel = document.getElementById('apr-responsavel').value;
+
+            const checkedRiscos = document.querySelectorAll('.apr-risco:checked');
+            if (checkedRiscos.length === 0) {
+                showNotification('Selecione pelo menos um Risco Crítico na avaliação.', 'warning');
+                return;
+            }
+
+            if (!biometricSignatures.apr) {
+                showNotification('É necessário assinar a APR via biometria do responsável.', 'error');
+                return;
+            }
+
+            const riscos = [];
+            checkedRiscos.forEach(box => riscos.push(box.value));
+
+            const isEditing = editingState.apr !== null;
+
+            if (isEditing) {
+                const recordId = editingState.apr;
+                const index = state.aprs.findIndex(r => r.id === recordId);
+                if (index !== -1) {
+                    state.aprs[index] = {
+                        id: recordId,
+                        atividade,
+                        setor,
+                        riscos,
+                        controles,
+                        responsavel,
+                        data: new Date().toLocaleString('pt-BR'),
+                        fingerprintHash: `APR_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                    };
+                    showNotification('APR atualizada e re-assinada digitalmente!');
+                    cancelEdit('apr');
+                }
+            } else {
+                const novoId = `APR-${Math.floor(1000 + Math.random() * 9000)}`;
+                state.aprs.push({
+                    id: novoId,
+                    atividade,
+                    setor,
+                    riscos,
+                    controles,
+                    responsavel,
+                    data: new Date().toLocaleString('pt-BR'),
+                    fingerprintHash: `APR_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                });
+                showNotification('Nova Análise Preliminar de Risco cadastrada e autenticada!');
+            }
+
+            document.getElementById('form-apr').reset();
+            biometricSignatures.apr = false;
+            document.getElementById('apr-biometric-success').classList.add('hidden');
+            document.getElementById('apr-biometric-btn-text').innerText = 'Autenticar via Biometria';
+
+            saveState();
+            renderAPRHistory();
+        }
+
+        function editAPR(id) {
+            const reg = state.aprs.find(r => r.id === id);
+            if (!reg) return;
+
+            editingState.apr = id;
+            document.getElementById('apr-editing-id-text').innerText = `#${id}`;
+            document.getElementById('apr-edit-banner').classList.remove('hidden');
+            document.getElementById('apr-form-title').innerText = getFormTitle('apr', true);
+            document.getElementById('apr-submit-btn').innerText = getSubmitBtnText('apr', true);
+
+            document.getElementById('apr-atividade').value = reg.atividade;
+            document.getElementById('apr-setor').value = reg.setor;
+            document.getElementById('apr-controles').value = reg.controles;
+            document.getElementById('apr-responsavel').value = reg.responsavel;
+
+            document.querySelectorAll('.apr-risco').forEach(box => {
+                box.checked = reg.riscos.includes(box.value);
+            });
+
+            biometricSignatures.apr = false;
+            document.getElementById('apr-biometric-success').classList.add('hidden');
+            document.getElementById('apr-biometric-btn-text').innerText = 'Re-assinar para Homologar';
+
+            document.getElementById('form-apr').scrollIntoView({ behavior: 'smooth' });
+            showNotification('Edição de APR carregada.', 'warning');
+        }
+
+        // --- PT ---
+        function renderPTHistory() {
+            const body = document.getElementById('pt-history-body');
+            body.innerHTML = '';
+
+            if (state.pts.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">Nenhuma PT emitida.</td></tr>`;
+                return;
+            }
+
+            state.pts.forEach(reg => {
+                body.innerHTML += `
+                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                        <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
+                        <td class="py-3 px-4 text-white font-medium">${reg.local}</td>
+                        <td class="py-3 px-4 text-slate-400">${reg.categoria}</td>
+                        <td class="py-3 px-4 text-slate-400">${reg.executante}</td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="editPT('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar PT">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="openReceiptModal('pt', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Documento">
+                                <i class="fa-solid fa-file-invoice"></i> Ver PT
+                            </button>
+                            <button onclick="deleteRecord('pts', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handlePTSubmit(event) {
+            event.preventDefault();
+            const local = document.getElementById('pt-local').value;
+            const categoria = document.getElementById('pt-categoria').value;
+            const executante = document.getElementById('pt-executante').value;
+            const autorizador = document.getElementById('pt-autorizador').value;
+
+            if (!biometricSignatures.pt) {
+                showNotification('A Permissão de Trabalho exige validação de assinatura biométrica.', 'error');
+                return;
+            }
+
+            const isEditing = editingState.pt !== null;
+
+            if (isEditing) {
+                const recordId = editingState.pt;
+                const index = state.pts.findIndex(r => r.id === recordId);
+                if (index !== -1) {
+                    state.pts[index] = {
+                        id: recordId,
+                        local,
+                        categoria,
+                        executante,
+                        autorizador,
+                        data: new Date().toLocaleString('pt-BR'),
+                        fingerprintHash: `PT_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                    };
+                    showNotification('Permissão de Trabalho atualizada e autorizada!');
+                    cancelEdit('pt');
+                }
+            } else {
+                const novoId = `PT-${Math.floor(1000 + Math.random() * 9000)}`;
+                state.pts.push({
+                    id: novoId,
+                    local,
+                    categoria,
+                    executante,
+                    autorizador,
+                    data: new Date().toLocaleString('pt-BR'),
+                    fingerprintHash: `PT_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                });
+                showNotification('Nova Permissão de Trabalho (PT) emitida e ativa!');
+            }
+
+            document.getElementById('form-pt').reset();
+            biometricSignatures.pt = false;
+            document.getElementById('pt-biometric-success').classList.add('hidden');
+            document.getElementById('pt-biometric-btn-text').innerText = 'Liberar via Biometria';
+
+            saveState();
+            renderPTHistory();
+        }
+
+        function editPT(id) {
+            const reg = state.pts.find(r => r.id === id);
+            if (!reg) return;
+
+            editingState.pt = id;
+            document.getElementById('pt-editing-id-text').innerText = `#${id}`;
+            document.getElementById('pt-edit-banner').classList.remove('hidden');
+            document.getElementById('pt-form-title').innerText = getFormTitle('pt', true);
+            document.getElementById('pt-submit-btn').innerText = getSubmitBtnText('pt', true);
+
+            document.getElementById('pt-local').value = reg.local;
+            document.getElementById('pt-categoria').value = reg.categoria;
+            document.getElementById('pt-executante').value = reg.executante;
+            document.getElementById('pt-autorizador').value = reg.autorizador;
+
+            document.getElementById('pt-chk-1').checked = true;
+            document.getElementById('pt-chk-2').checked = true;
+            document.getElementById('pt-chk-3').checked = true;
+
+            biometricSignatures.pt = false;
+            document.getElementById('pt-biometric-success').classList.add('hidden');
+            document.getElementById('pt-biometric-btn-text').innerText = 'Re-assinar para Homologar';
+
+            document.getElementById('form-pt').scrollIntoView({ behavior: 'smooth' });
+            showNotification('Edição de PT carregada.', 'warning');
+        }
+
+        // --- CHECKLISTS ---
+        function renderChecklistHistory() {
+            const body = document.getElementById('checklist-history-body');
+            body.innerHTML = '';
+
+            if (state.checklists.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">Nenhum checklist de máquina efetuado.</td></tr>`;
+                return;
+            }
+
+            state.checklists.forEach(reg => {
+                const statusBadge = reg.status === 'Aprovado' 
+                    ? '<span class="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold border border-emerald-900/60">Conforme</span>'
+                    : '<span class="bg-red-950 text-red-400 px-2 py-0.5 rounded-full text-[10px] font-bold border border-red-900/60">BLOQUEADO</span>';
+
+                body.innerHTML += `
+                    <tr class="border-b border-slate-900/60 hover:bg-slate-900/25">
+                        <td class="py-3 px-4 font-bold text-slate-400">${reg.id}</td>
+                        <td class="py-3 px-4 text-white font-medium">${reg.maquina}</td>
+                        <td class="py-3 px-4 text-slate-400">${reg.operador}</td>
+                        <td class="py-3 px-4">${statusBadge}</td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="editChecklist('${reg.id}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/50 text-amber-400 rounded border border-amber-800/30 transition text-[10px]" title="Editar Checklist">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="openReceiptModal('checklist', '${reg.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition text-[10px]" title="Visualizar Documento">
+                                <i class="fa-solid fa-file-invoice"></i> Ver Ficha
+                            </button>
+                            <button onclick="deleteRecord('checklists', '${reg.id}')" class="px-2 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded transition text-[10px]" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleChecklistSubmit(event) {
+            event.preventDefault();
+            const maquina = document.getElementById('chk-maquina').value;
+            const operador = document.getElementById('chk-operador').value;
+            const item1 = document.getElementById('chk-item1').value;
+            const item2 = document.getElementById('chk-item2').value;
+            const item3 = document.getElementById('chk-item3').value;
+
+            if (!biometricSignatures.checklist) {
+                showNotification('Exige-se a autenticação biométrica do operador executor.', 'error');
+                return;
+            }
+
+            const status = (item1 === 'NC' || item2 === 'NC' || item3 === 'NC') ? 'Reprovado' : 'Aprovado';
+            const isEditing = editingState.checklist !== null;
+
+            if (isEditing) {
+                const recordId = editingState.checklist;
+                const index = state.checklists.findIndex(r => r.id === recordId);
+                if (index !== -1) {
+                    state.checklists[index] = {
+                        id: recordId,
+                        maquina,
+                        operador,
+                        itens: { item1, item2, item3 },
+                        status,
+                        data: new Date().toLocaleString('pt-BR'),
+                        fingerprintHash: `CHK_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                    };
+                    
+                    if (status === 'Reprovado') {
+                        showNotification(`Falha crítica identificada! ${maquina} continua BLOQUEADA no sistema.`, 'error');
+                    } else {
+                        showNotification(`Checklist de ${maquina} atualizado com sucesso e máquina liberada!`);
+                    }
+                    cancelEdit('checklist');
+                }
+            } else {
+                const novoId = `CHK-${Math.floor(1000 + Math.random() * 9000)}`;
+                state.checklists.push({
+                    id: novoId,
+                    maquina,
+                    operador,
+                    itens: { item1, item2, item3 },
+                    status,
+                    data: new Date().toLocaleString('pt-BR'),
+                    fingerprintHash: `CHK_BIO_HEX_${Math.random().toString(16).substr(2, 8).toUpperCase()}`
+                });
+
+                if (status === 'Reprovado') {
+                    showNotification(`Falha crítica detectada na inspeção! Máquina BLOQUEADA fisicamente.`, 'error');
+                } else {
+                    showNotification('Checklist diário concluído e homologado com conformidade!');
+                }
+            }
+
+            document.getElementById('form-checklist').reset();
+            biometricSignatures.checklist = false;
+            document.getElementById('checklist-biometric-success').classList.add('hidden');
+            document.getElementById('checklist-biometric-btn-text').innerText = 'Assinar via Biometria';
+
+            saveState();
+            renderChecklistHistory();
+        }
+
+        function editChecklist(id) {
+            const reg = state.checklists.find(r => r.id === id);
+            if (!reg) return;
+
+            editingState.checklist = id;
+            document.getElementById('checklist-editing-id-text').innerText = `#${id}`;
+            document.getElementById('checklist-edit-banner').classList.remove('hidden');
+            document.getElementById('checklist-form-title').innerText = getFormTitle('checklist', true);
+            document.getElementById('checklist-submit-btn').innerText = getSubmitBtnText('checklist', true);
+
+            document.getElementById('chk-maquina').value = reg.maquina;
+            document.getElementById('chk-operador').value = reg.operador;
+            document.getElementById('chk-item1').value = reg.itens.item1;
+            document.getElementById('chk-item2').value = reg.itens.item2;
+            document.getElementById('chk-item3').value = reg.itens.item3;
+
+            biometricSignatures.checklist = false;
+            document.getElementById('checklist-biometric-success').classList.add('hidden');
+            document.getElementById('checklist-biometric-btn-text').innerText = 'Re-assinar para Homologar';
+
+            document.getElementById('form-checklist').scrollIntoView({ behavior: 'smooth' });
+            showNotification('Edição de Checklist carregada.', 'warning');
+        }
+
+        // --- DELETAR ---
+        function deleteRecord(entityKey, id) {
+            if (entityKey === 'entregasEPI') {
+                const reg = state.entregasEPI.find(r => r.id === id);
+                if (reg) {
+                    reg.epis.forEach(itemEpi => {
+                        const invItem = state.inventory.find(i => i.id === itemEpi.id);
+                        if (invItem) invItem.estoque += 1;
+                    });
+                }
+            }
+
+            state[entityKey] = state[entityKey].filter(item => item.id !== id);
+            saveState();
+            showNotification(`Registro #${id} removido definitivamente com sucesso.`, 'success');
+            
+            if (entityKey === 'entregasEPI') { renderEPIOptions(); renderEPIHistory(); }
+            if (entityKey === 'aprs') renderAPRHistory();
+            if (entityKey === 'pts') renderPTHistory();
+            if (entityKey === 'checklists') renderChecklistHistory();
+        }
+
+        // --- RECIBO E IMPRESSÃO ---
+        function openReceiptModal(module, id) {
+            const receiptDiv = document.getElementById('receiptModalContent');
+            let htmlContent = '';
+
+            if (module === 'epi') {
+                const reg = state.entregasEPI.find(r => r.id === id);
+                if (!reg) return;
+
+                htmlContent = `
+                    <div class="border-4 border-double border-slate-900 p-6 space-y-4">
+                        <div class="flex justify-between items-start border-b pb-4">
+                            <div>
+                                <h1 class="font-extrabold text-xl uppercase tracking-tight text-slate-900">Ficha de Fornecimento de EPI</h1>
+                                <p class="text-xs text-slate-500 font-medium">Controle Interno de Segurança do Trabalho - NR-06 (Portaria 3.214/78)</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-slate-900 text-white font-extrabold px-3 py-1.5 text-xs rounded-md block mb-1">CÓD: ${reg.id}</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">${reg.data}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Empregador</span>
+                                <span class="font-bold text-slate-800 text-sm">SST SECURE LOGÍSTICA & ENGENHARIA</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Colaborador / Portador</span>
+                                <span class="font-bold text-slate-800 text-sm">${reg.colaborador}</span>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-slate-600 leading-relaxed space-y-1">
+                            <p class="font-semibold text-slate-800">Termo de Compromisso e Responsabilidade do Colaborador:</p>
+                            <p>Recebi do meu empregador, de forma gratuita, os Equipamentos de Proteção Individual listados abaixo, de acordo com as exigências da <strong>NR-6 do Ministério do Trabalho e Emprego</strong>. Comprometo-me a usá-los estritamente para o desempenho das minhas atribuições funcionais, responsabilizando-me pela guarda, conservação e higienização.</p>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block mb-1">EPIs Fornecidos e Homologados</span>
+                            <table class="w-full text-left border text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b">
+                                        <th class="p-2 font-bold">Equipamento</th>
+                                        <th class="p-2 font-bold">Código C.A</th>
+                                        <th class="p-2 font-bold text-center">Qtde</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${reg.epis.map(epi => `
+                                        <tr class="border-b text-slate-700">
+                                            <td class="p-2 font-medium">${epi.nome}</td>
+                                            <td class="p-2 font-mono">${epi.ca}</td>
+                                            <td class="p-2 text-center">01</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
+                            <div class="text-xs text-slate-500">
+                                <p><strong>Motivo da Entrega:</strong> ${reg.motivo}</p>
+                                <p class="mt-1 leading-relaxed">Homologação por biometria em substituição à assinatura física convencional, respaldado pelo artigo 10 da Medida Provisória nº 2.200-2.</p>
+                            </div>
+                            <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
+                                <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
+                                <span class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider mt-1">Homologado Digitalmente</span>
+                                <span class="text-[9px] font-mono text-slate-500 mt-0.5">${reg.fingerprintHash}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (module === 'apr') {
+                const reg = state.aprs.find(r => r.id === id);
+                if (!reg) return;
+
+                htmlContent = `
+                    <div class="border-4 border-double border-slate-900 p-6 space-y-4">
+                        <div class="flex justify-between items-start border-b pb-4">
+                            <div>
+                                <h1 class="font-extrabold text-xl uppercase tracking-tight text-slate-900">Análise Preliminar de Risco (APR)</h1>
+                                <p class="text-xs text-slate-500 font-medium">Procedimento Administrativo de Prevenção de Acidentes - NR-01</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-slate-900 text-white font-extrabold px-3 py-1.5 text-xs rounded-md block mb-1">CÓD: ${reg.id}</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">${reg.data}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Atividade Planejada</span>
+                                <span class="font-bold text-slate-800 text-sm block">${reg.atividade}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Setor Operacional</span>
+                                <span class="font-bold text-slate-800 text-sm block">${reg.setor}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Riscos Identificados e Atrelados</span>
+                            <div class="flex flex-wrap gap-1">
+                                ${reg.riscos.map(risco => `
+                                    <span class="bg-red-50 text-red-700 text-[10px] font-bold px-2.5 py-1 rounded border border-red-200 uppercase">${risco}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="text-xs">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ações Preventivas de Controle e Segurança</span>
+                            <div class="bg-slate-50 border p-3 rounded-lg text-slate-700 leading-relaxed italic">
+                                "${reg.controles}"
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
+                            <div class="text-xs text-slate-500">
+                                <p><strong>Responsável pela Análise:</strong> ${reg.responsavel}</p>
+                                <p class="mt-1 leading-relaxed">A elaboração desta APR é obrigatória e antecede o início de qualquer atividade crítica para salvaguardar a saúde física dos executantes.</p>
+                            </div>
+                            <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
+                                <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
+                                <span class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider mt-1">Homologado Digitalmente</span>
+                                <span class="text-[9px] font-mono text-slate-500 mt-0.5">${reg.fingerprintHash}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (module === 'pt') {
+                const reg = state.pts.find(r => r.id === id);
+                if (!reg) return;
+
+                htmlContent = `
+                    <div class="border-4 border-double border-slate-900 p-6 space-y-4">
+                        <div class="flex justify-between items-start border-b pb-4">
+                            <div>
+                                <h1 class="font-extrabold text-xl uppercase tracking-tight text-slate-900">Permissão de Trabalho Especial (PT)</h1>
+                                <p class="text-xs text-slate-500 font-medium">Autorização Formal para Serviços Críticos - NR-33, NR-35 e NR-10</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-red-950 text-red-500 font-extrabold px-3 py-1.5 text-xs rounded-md block mb-1 border border-red-800/40">CÓD: ${reg.id}</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">${reg.data}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Frente de Serviço / Local</span>
+                                <span class="font-bold text-slate-800 text-sm block">${reg.local}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Categoria de Risco</span>
+                                <span class="font-bold text-red-600 text-sm block font-extrabold">${reg.categoria}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Colaborador Executante</span>
+                                <span class="font-bold text-slate-800 block">${reg.executante}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Supervisor de Liberação</span>
+                                <span class="font-bold text-slate-800 block">${reg.autorizador}</span>
+                            </div>
+                        </div>
+
+                        <div class="border p-3 rounded-lg bg-slate-50 text-xs">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block mb-1.5">Conformidades Obrigatórias Avaliadas</span>
+                            <ul class="space-y-1 text-slate-700">
+                                <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Isolamento e sinalização de área efetuada e aprovada.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Equipamentos de resgate testados e posicionados no local.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> APR lida, compreendida e assinada por todos os executantes.</li>
+                            </ul>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
+                            <div class="text-xs text-slate-500">
+                                <p><strong>Status Legal:</strong> Liberado para Trabalho Temporário</p>
+                                <p class="mt-1 leading-relaxed">Esta Permissão de Trabalho tem validade máxima de 8 horas contínuas, devendo ser re-avaliada na troca de turno.</p>
+                            </div>
+                            <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
+                                <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
+                                <span class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider mt-1">Homologado Digitalmente</span>
+                                <span class="text-[9px] font-mono text-slate-500 mt-0.5">${reg.fingerprintHash}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (module === 'checklist') {
+                const reg = state.checklists.find(r => r.id === id);
+                if (!reg) return;
+
+                const stClass = reg.status === 'Aprovado' ? 'text-emerald-600' : 'text-red-600 font-extrabold';
+
+                htmlContent = `
+                    <div class="border-4 border-double border-slate-900 p-6 space-y-4">
+                        <div class="flex justify-between items-start border-b pb-4">
+                            <div>
+                                <h1 class="font-extrabold text-xl uppercase tracking-tight text-slate-900">Checklist Diário de Inspeção Pré-Uso</h1>
+                                <p class="text-xs text-slate-500 font-medium">Controle de Segurança de Máquinas e Equipamentos - NR-12</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-slate-900 text-white font-extrabold px-3 py-1.5 text-xs rounded-md block mb-1">CÓD: ${reg.id}</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">${reg.data}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Equipamento / Frota</span>
+                                <span class="font-bold text-slate-800 text-sm block">${reg.maquina}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Operador Responsável</span>
+                                <span class="font-bold text-slate-800 text-sm block">${reg.operador}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block mb-1.5">Avaliação dos Requisitos de Segurança (NR-12)</span>
+                            <div class="border rounded-lg overflow-hidden text-xs">
+                                <div class="grid grid-cols-3 bg-slate-50 p-2 font-bold border-b text-slate-700">
+                                    <div>Item Inspecionado</div>
+                                    <div class="text-center">Método de Avaliação</div>
+                                    <div class="text-right">Situação</div>
+                                </div>
+                                <div class="grid grid-cols-3 p-2 border-b text-slate-600">
+                                    <div>1. Parada de Emergência</div>
+                                    <div class="text-center text-slate-400">Teste Funcional de Soco</div>
+                                    <div class="text-right font-bold ${reg.itens.item1 === 'C' ? 'text-emerald-600' : 'text-red-500'}">${reg.itens.item1 === 'C' ? 'Conforme' : 'Não Conforme'}</div>
+                                </div>
+                                <div class="grid grid-cols-3 p-2 border-b text-slate-600">
+                                    <div>2. Sensores Físicos</div>
+                                    <div class="text-center text-slate-400">Varredura e Conexão</div>
+                                    <div class="text-right font-bold ${reg.itens.item2 === 'C' ? 'text-emerald-600' : 'text-red-500'}">${reg.itens.item2 === 'C' ? 'Conforme' : 'Não Conforme'}</div>
+                                </div>
+                                <div class="grid grid-cols-3 p-2 text-slate-600">
+                                    <div>3. Inexistência de Vazamentos</div>
+                                    <div class="text-center text-slate-400">Varredura Visual e Pressão</div>
+                                    <div class="text-right font-bold ${reg.itens.item3 === 'C' ? 'text-emerald-600' : 'text-red-500'}">${reg.itens.item3 === 'C' ? 'Conforme' : 'Não Conforme'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 items-center border-t pt-4">
+                            <div class="text-xs text-slate-500">
+                                <p><strong>Avaliação Final da Inspeção:</strong> <span class="${stClass}">${reg.status.toUpperCase()}</span></p>
+                                <p class="mt-1 leading-relaxed">Máquinas que apresentarem qualquer não-conformidade física nos itens de segurança terão sua operação proibida com bloqueio mecânico.</p>
+                            </div>
+                            <div class="flex flex-col items-center justify-center p-3 bg-slate-50 border rounded-xl text-center">
+                                <i class="fa-solid fa-fingerprint text-3xl text-emerald-600"></i>
+                                <span class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider mt-1">Homologado Digitalmente</span>
+                                <span class="text-[9px] font-mono text-slate-500 mt-0.5">${reg.fingerprintHash}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            receiptDiv.innerHTML = htmlContent;
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
